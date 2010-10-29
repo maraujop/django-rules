@@ -10,40 +10,37 @@ To install Django-rules run:
 h2. Configuration
 
 You need to hook it into your project:
-*1.* Put into your <pre>INSTALLED_APPS</pre> at settings:
-<pre> 
-INSTALLED_APPS = {
+*1.* Put into your <code>INSTALLED_APPS</code> at settings:
+<pre>INSTALLED_APPS = {
     ...
     'django_rules',
-}
-</pre>
+}</pre>
 
 *2.* Add it as an authorization backend:
-<pre> 
-AUTHENTICATION_BACKENDS = {
+<pre>AUTHENTICATION_BACKENDS = {
     'django.contrib.auth.backends.ModelBackend', # default
     'django_rules.backends.ObjectPermissionBackend',
-)
-</pre>
+)</pre>
+
+*3.* Run syncdb to create django-rules models:
+<pre>python manage.py syncdb</pre>
 
 h2. Usage
 
-Django-rules differ from other authorization backends in the way it lets you flexibly manage per object permissions. Every rule is associated to a method 
-that corresponds to a model. That method will be in charge of checking if the user has authorization to take an action over an object. 
+Django-rules differ from other authorization backends in the way it lets you flexibly manage per object permissions. Every rule is associated to a method that corresponds to a model. That method will be in charge of checking if the user has authorization to take an action over an object. 
 
 h3. Creating rules
 
-You will have to create a rules.py file under every Django-app's directory in which you want to create rules. 
-rules.py should contain the rule declarations for only that application. Every rule is formed by 6 parameters: 
+You will have to create a <code>rules.py</code> file under every Django-app's directory in which you want to create rules. <code>rules.py</code> should contain the rule declarations for only that application. Every rule is formed by 6 parameters: 
 
 * *app_name:* Name of the app to which the rule belongs to.
 * *codename:* This is the name of the rule and has to be unique among all applications.
 * *model:* This the name of the model that the rule is associated to.
-* *field_name: (Optional)* This is the name of the model's method, property or field that the rule is associated to. If you don't set it, the codename will be used as default
+* *field_name: (Optional)* This is the name of the model's method, property or attribute that the rule is associated to. If you don't set it, the codename will be used as default
 * *view_param_pk: (Optional)* This is necessary if you use the decorator that comes with this app. It is the view's param that will be used as primary key value for getting the object of that model. If you don't set it, the model's primary key field name will be used by default.
 * *description: (Optional)* 140 characters to explain what the rule if for in readable text.
 
-You will have to call <pre>django.utils.register</pre> for each rule you want to be effective. 
+You will have to call <code>django.utils.register</code> for each rule you want to be effective. 
 
 h3. Example
 
@@ -62,7 +59,7 @@ class Dummy(models.Model):
         return self.supplier == user_obj
 </pre>
 
-This is how a rules.py with only one effective rule looks like:
+This is how a <code>rules.py</code> with only one effective rule looks like:
 
 <pre>
 from django_rules import utils
@@ -84,14 +81,14 @@ for params in rules_list:
 
 h3. Syncing rules
 
-Next step would be to sync those rules. In your Django project you will have to run sync_rules command doing:
+Next step would be to sync those rules. In your Django project you will have to run <code>sync_rules</code> command doing:
 <pre>python manage.py sync_rules</pre>
 
-This command will look for all your rules.py files under your <pre>INSTALLED_APPS</pre> and sync the Database with the last changes, so you don't have to run <pre>syncdb</pre> or drop the database before.
+This command will look for all your <code>rules.py</code> files under your <code>INSTALLED_APPS</code> and sync the Database with the last changes, so you don't have to run <code>syncdb</code> or drop the database before.
 
 h3. Using rules
 
-Whenever you want to check if a user has authorization to take an action over an object. You will need a <pre>contrib.auth.models.User</pre> and of course a model instance. 
+Whenever you want to check if a user has authorization to take an action over an object. You will need a <code>contrib.auth.models.User</code> and of course a model instance. 
 To make this clearer suppose there is data in the DB, I'm also omitting imports. In you code you would do:
 
 <pre>
@@ -102,18 +99,18 @@ if user.has_perm('can_ship', dummy_object):
     print "Yey! Authorization checking passed"
 </pre>
 
-This is when all the magic happens, so focus. When you call has_perm Django handles control over django-rules backend. This will call <pre>dummy_object.canShip(user)</pre> if that method returns True, then you have authorization, otherwise you don't.
+This is when all the magic happens, so focus. When you call has_perm Django handles control over django-rules backend. This will call <code>dummy_object.canShip(user)</code> if that method returns True, then you have authorization, otherwise you don't.
 
 h3. More on rules
 
-If you have read this carefully, you will be thinking that if the <pre>field_name</pre> is a method it needs to have a parameter. Well, not completely true. The backend is "smart" and it will find out if the method is expecting a parameter or not. In any case, the method maximum number of parameters is one, and that one will be passed and should expect a user object.
+If you have read this carefully, you will be thinking that if the <code>field_name</code> is a method it needs to have a parameter. Well, not completely true. The backend is "smart" and it will find out if the method is expecting a parameter or not. In any case, the method maximum number of parameters is one, and that one will be passed and should expect a user object.
 
 You can create rules on model's attributes and properties too. 
 
 h3. Decorators
 
-If you remember every rule has a view_param_pk That is the name of the view's parameter whose value will use the decorator to obtain a rule's model instance.
-If you like Python as I do, you will love decorators. As Django has a <pre>permission_required</pre> decorator, this app has an <pre>object_permission_required</pre> decorator. This is how you have to use it:
+If you remember every rule has a view_param_pk That is the name of the view's parameter whose value will use the decorator to obtain a rule's model instance. 
+If you like Python as I do, you will love decorators. As Django has a <code>permission_required</code> decorator, this app has an <code>object_permission_required</code> decorator. This is how you have to use it:
 
 <pre>
 from django_rules import object_permission_required
@@ -131,11 +128,11 @@ You can pass it 3 arguments:
 @object_permission_required('can_ship', login_url='/foobar/')
 @object_permission_required('can_ship', redirect_field_name='/whatever/')</pre>
 
-By default <pre>return_403</pre> is set to False, <pre>redirect_field_name</pre> to an emtpy string and If the user has no rights, it will redirect to <pre>settings.LOGIN_URL</pre>
+By default <code>return_403</code> is set to False, <code>redirect_field_name</code> to an emtpy string and If the user has no rights, it will redirect to <code>settings.LOGIN_URL</code>
 
 h3. Centralized Permissions
 
-Everyone's got a web application that has special privileged groups like administrators, user support or staff. <pre>django-rules</pre> has a way to let you bypass authorization system for whatever reasons you have. You will need to set in your project settings the variable <pre>CENTRAL_AUTHORIZATIONS</pre> pointing to a module:
+Everyone's got a web application that has special privileged groups like administrators, user support or staff. <code>django-rules</code> has a way to let you bypass authorization system for whatever reasons you have. You will need to set in your project settings the variable <code>CENTRAL_AUTHORIZATIONS</code> pointing to a module:
 
 <pre>CENTRAL_AUTHORIZATIONS = 'project.utils'</pre>
 
@@ -149,7 +146,7 @@ def central_authorizations(user_obj, perm):
     [...]
 </pre>
 
-Only requesite, as you have probably imagined, is that the function has to return a boolean value. As you can imagine, everything that is checked in <pre>central_authorizations</pre> is global to the whole project.
+Only requesite, as you have probably imagined, is that the function has to return a boolean value. As you can imagine, everything that is checked in <code>central_authorizations</code> is global to the whole project.
 
 h2. Philosophy 
 
@@ -166,12 +163,17 @@ However, you need to be aware of something. The methods mapped to rules, will be
 
 h2. Status and testing
 
-As django-rules is a security application, it has been thoroughly tested. It comes with a battery of tests, that try to cover all funcionality. However, if you come across a bug or an irregular situation, feel free to report at Github bug tracker.
+As django-rules is a security application, it has been thoroughly tested. It comes with a battery of tests, that try to cover all funcionality. However, if you come across a bug or an irregular situation, feel free to report it at Github bug tracker.
 
-To run tests, get into tests directory and execute. It should always say OK, if not please report it:
-<pre>./runtests.py</pre>
+To run tests, get into tests directory and execute:
+<pre>./runtests.py</pre> 
+It should always say OK, if not please report it.
 
 The application comes geared with many different exceptions, that will make sure rules are created properly and security is kept away from neglicence. You should manage them carefuly. 
+
+h2. Need more examples?
+
+I have done my best trying to explain the concept behind django-rules, but if you would rather look at more code examples, then you will find them at tests directory. 
 
 h2. More Documentation
 
