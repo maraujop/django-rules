@@ -12,7 +12,7 @@ setup(
     name='django-rules',
     version=version,
     description="Flexible Django per object authorization backend",
-    long_description=read('README.txt'),
+    long_description=read('README.textile'),
     classifiers=[
         "Programming Language :: Python",
         "Topic :: Software Development :: Libraries :: Python Modules",
