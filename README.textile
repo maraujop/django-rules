@@ -20,7 +20,7 @@ You need to hook it into your project:
 <pre>AUTHENTICATION_BACKENDS = {
     'django.contrib.auth.backends.ModelBackend', # default
     'django_rules.backends.ObjectPermissionBackend',
-)</pre>
+}</pre>
 
 *3.* Run syncdb to create django-rules models:
 <pre>python manage.py syncdb</pre>
@@ -84,7 +84,13 @@ h3. Syncing rules
 Next step would be to sync those rules. In your Django project you will have to run <code>sync_rules</code> command doing:
 <pre>python manage.py sync_rules</pre>
 
-This command will look for all your <code>rules.py</code> files under your <code>INSTALLED_APPS</code> and sync the Database with the last changes, so you don't have to run <code>syncdb</code> or drop the database before.
+If you run <code>sync_rules</code> without parameters, it will synchronize all <code>rules.py</code> files under your <code>INSTALLED_APPS</code> and sync the Database with the last changes, so you don't have to run <code>syncdb</code> or drop the database before.
+
+If you just want to sync one or more apps, you can pass their names as parameters:
+<pre>python manage.py sync_rules app1 app2</pre>
+
+You can pass <code>--fixture</code> as an option to <code>sync_rules</code>. This option will make the command output a json fixture of <code>django-rules</code>. More than likely you will need your rules as a fixture for testing apps that rely on <code>django-rules</code> for authorizing actions. This way you can keep the fixture up to date for testing:
+<pre>python manage.py sync_rules --fixture > fixtures/django-rules.json</pre>
 
 h3. Using rules
 
