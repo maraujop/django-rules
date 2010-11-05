@@ -11,16 +11,22 @@ h2. Configuration
 
 You need to hook it into your project:
 *1.* Put into your <code>INSTALLED_APPS</code> at settings:
-<pre>INSTALLED_APPS = {
+
+<pre>
+INSTALLED_APPS = {
     ...
     'django_rules',
-}</pre>
+}
+</pre>
 
 *2.* Add it as an authorization backend:
-<pre>AUTHENTICATION_BACKENDS = {
+
+<pre>
+AUTHENTICATION_BACKENDS = {
     'django.contrib.auth.backends.ModelBackend', # default
     'django_rules.backends.ObjectPermissionBackend',
-}</pre>
+}
+</pre>
 
 *3.* Run syncdb to create django-rules models:
 <pre>python manage.py syncdb</pre>
@@ -130,25 +136,29 @@ This decorator essentially does:
 <pre>request.user.has_perm('can_ship', Model.objects.get(pk=idView))</pre>
 
 You can pass it 3 arguments: 
-<pre>@object_permission_required('can_ship', return_403=True)
+
+<pre>
+@object_permission_required('can_ship', return_403=True)
 @object_permission_required('can_ship', login_url='/foobar/')
-@object_permission_required('can_ship', redirect_field_name='/whatever/')</pre>
+@object_permission_required('can_ship', redirect_field_name='/whatever/')
+</pre>
 
 By default <code>return_403</code> is set to False, <code>redirect_field_name</code> to an emtpy string and If the user has no rights, it will redirect to <code>settings.LOGIN_URL</code>
 
 *But be careful*, for the decorator to work parameters to the view have to be passed as kwargs, this is the default behavior if your view is an entry point through urls. But if the view is called internally, you will need to call it like:
+
 <pre>
 def external_view(request, idView):
     return internal_view(request, idView=idView)
 
 @object_permission_required('can_ship')
 def internal_view(request,idView):
+    ...
 </pre>
 
 h3. Centralized Permissions
 
 Everyone's got a web application that has special privileged groups like administrators, user support or staff. <code>django-rules</code> has a way to let you bypass authorization system for whatever reasons you have. You will need to set in your project settings the variable <code>CENTRAL_AUTHORIZATIONS</code> pointing to a module:
-
 <pre>CENTRAL_AUTHORIZATIONS = 'project.utils'</pre>
 
 In that module you will need to define a homonym function, that has to expect two parameters. First a user object, second a permission codename:
@@ -168,6 +178,7 @@ h2. Philosophy
 Behind django-rules there is the idea of building a flexible and scalable authorization backend. Why is it better?
 
 * First, you can change a method code whenever, changing how permissions work at any time. It's dynamic and you know dynamic sounds way better than static
+* You have fine granularity control, one rule can be using LDAP and another can be using a web service or ACL system.
 * You don't need to add permissions to anybody, permissions are implicit, it kind of works like roles, though these are rules :)
 * Some other per object backends create a row in a table for every object, every user and every permission combination. If you have a medium to large site, you are basically screwed, no matter how much you use caching systems.
 * Other authorization backends have to SELECT all permissions that a user has to answer if the user has only one specific, making the memory footprint bigger.
@@ -182,6 +193,7 @@ As django-rules is a security application, it has been thoroughly tested. It com
 
 To run tests, get into tests directory and execute:
 <pre>./runtests.py</pre> 
+
 It should always say OK, if not please report it.
 
 The application comes geared with many different exceptions, that will make sure rules are created properly and security is kept away from neglicence. You should manage them carefuly. 
