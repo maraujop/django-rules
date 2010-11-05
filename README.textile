@@ -143,7 +143,6 @@ def external_view(request, idView):
 
 @object_permission_required('can_ship')
 def internal_view(request,idView):
-    ...
 </pre>
 
 h3. Centralized Permissions
