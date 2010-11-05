@@ -115,7 +115,7 @@ You can create rules on model's attributes and properties too.
 
 h3. Decorators
 
-If you remember every rule has a view_param_pk That is the name of the view's parameter whose value will use the decorator to obtain a rule's model instance. 
+If you remember every rule has a view_param_pk that is the name of the view's parameter whose value will use the decorator to obtain a rule's model instance. 
 If you like Python as I do, you will love decorators. As Django has a <code>permission_required</code> decorator, this app has an <code>object_permission_required</code> decorator. This is how you have to use it:
 
 <pre>
@@ -135,6 +135,16 @@ You can pass it 3 arguments:
 @object_permission_required('can_ship', redirect_field_name='/whatever/')</pre>
 
 By default <code>return_403</code> is set to False, <code>redirect_field_name</code> to an emtpy string and If the user has no rights, it will redirect to <code>settings.LOGIN_URL</code>
+
+*But be careful*, for the decorator to work parameters to the view have to be passed as kwargs, this is the default behavior if your view is an entry point through urls. But if the view is called internally, you will need to call it like:
+<pre>
+def external_view(request, idView):
+    return internal_view(request, idView=idView)
+
+@object_permission_required('can_ship')
+def internal_view(request,idView):
+    ...
+</pre>
 
 h3. Centralized Permissions
 
