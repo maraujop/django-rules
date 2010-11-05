@@ -56,9 +56,13 @@ def object_permission_required(perm, **kwargs):
             except RulePermission.DoesNotExist:
                 raise NonexistentPermission("Permission %s does not exist" % perm)
 
-            if rule.view_param_pk not in kwargs:
-                raise RulesError("The view does not have a parameter called %s" % rule.view_param_pk)
-
+            # Only look in kwargs, if the views are entry points through urls Django passes parameters as kwargs
+            # We could look in args using  inspect.getcallargs in Python 2.7 or a custom function that 
+            # imitates it, but if the view is internal, I think it's better to force the user to pass 
+            # parameters as kwargs
+            if rule.view_param_pk not in kwargs: 
+                raise RulesError("The view does not have a parameter called %s in kwargs" % rule.view_param_pk)
+                
             model_class = rule.content_type.model_class()
             obj = get_object_or_404(model_class, pk=kwargs[rule.view_param_pk])
 
