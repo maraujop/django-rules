@@ -203,21 +203,23 @@ if supplier.has_perm('can_ship', item):
 
 Easy, right? :)
 
+
 h4. Detailed explanation of the internal flow
 
 Please note that what follows is a detailed explanation of how all the magic in django-rules flows. If you do not really care, please move along. If you want to know more, please pay great attention to the detail. Here is how all the pieces of the puzzle come together:
 * When you call <code>user_obj.has_perm(codename, model_obj)</code> (in the previous example, <code>supplier.has_perm('can_ship', item)</code>), Django handles the control over to the django-rules backend.
 * The django-rules backend will then try to match the <code>codename</code> with a rule. Note that we are requesting a rule with a <code>codename</code> of <code>'can_ship'</code> and a <code>model_obj</code> like the Model of the item object. Because in "Example 1":#ex1 we have defined the rule <code>{'codename':'can_ship', 'model':'Item'}</code>, there will be a match.
-* Then, django-rules will check whether <code>field_name</code> is an attribute, a property or a method, and will act accordingly. If <code>field_name</code> is a method, the django-rules backend will check if it requires one user parameter (the only possibility). Depending on the parameter requirements, it will execute <code>model_obj.field_name()</code> or <code>model_obj.field_name(user_obj)</code> (in our "Example 1":#ex1 we require a user parameter so it will execute <code>item.can_ship(supplier)</code>).
+* Then, django-rules will check whether <code>field_name</code> is an attribute, a property or a method, and will act accordingly. If <code>field_name</code> is a method, the django-rules backend will check if it requires no parameter or just one user parameter. Depending on the parameter requirements, it will execute <code>model_obj.field_name()</code> or <code>model_obj.field_name(user_obj)</code> (in our "Example 1":#ex1 we require a user parameter so it will execute <code>item.can_ship(supplier)</code>).
 * Finally, if the authorization constraint implemented in <code>field_name</code> is True or returns True, the constraint is considered fulfilled. Otherwise, you will not be authorized.
 
-h4. More complex internal details
+As we have seen, django-rules will check whether <code>field_name</code> is an attribute, a property or a method, and will act accordingly. You can create rules based on model's attributes and properties, which are more than fine for very simple cases but most of the time you will be setting <code>field_name</code> to a method in the model.
 
-As we have seen, you can create rules on model's attributes and properties. These are fine for very simple cases, but most of the time, you will be setting <code>field_name</code> to a method in the model. You might be thinking that since it is a method, you will have to specify the argument. This is quite correct and at the moment, only one automatic argument is supported and it must be a user object. The catch is that django-rules is smart enough to grab the <code>user_obj</code> from the <code>has_perm()</code> call and pass it to the method. Nifty, isn't it? :)
+It is important to note that this method is limited to having no parameters or just one parameter (a user object). It cannot receive multiple arguments or an argument that is not an instance of User. Although this might seem like a limitation, I could not think of a case of use where the rest of the information needed would be impossible to retrieve from the user or the model object. If you get into a situation where this is limiting you, please get in touch and explain your problem so that we can think of how to get around it! :)
 
-However, you need to be aware of something. A method assigned to a rule (let's call them rule methods from now on) should never call any other method. That is, they should be self-contained. This is to avoid infinite loops. Imagine a situation where the rule method calls another method that has _the same_ authorization constraint of the rule method. Boom! You just created an infinite loop. Run for your life! :)
+Finally, you need to be aware of something. A method assigned to a rule (let's call them rule methods from now on) *should never call any other method*. That is, they should be self-contained. This is to avoid infinite loops. Imagine a situation where the rule method calls another method that has _the same_ authorization constraint of the rule method. Boom! You just created an infinite loop. Run for your life! :)
 
 You may be thinking you can control this, but trust me, it will get very difficult to mantain and scale. Things will not always be that simple, maybe you will end up calling a method that calls a helping function that triggers the same authorization loop. Indirection is a bitch. Or, in other words "Great power comes with great responsibility". So beware of the infinite loop ;)
+
 
 h3. Decorators
 
