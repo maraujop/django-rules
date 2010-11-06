@@ -1,6 +1,11 @@
 # For people using hg-git plugin
 syntax: glob
-*.pyc
-build
-dist
-django_rules.egg-info
+.git/*
+*.py[co]
+*.swp
+*~
+nbproject/*
+.idea/*
+build/*
+dist/*
+django_rules.egg-info/*
