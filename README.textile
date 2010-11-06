@@ -24,8 +24,9 @@ django-rules requires a proper installation of at least Django 1.2.
 h2(#installation). Installation
 
 To install django-rules, download the source code from GitHub, change directory to the base project dir and run:
+
 <pre>
- python setup.py install
+python setup.py install
 </pre>
 
 
@@ -34,24 +35,27 @@ h2(#configuration). Configuration
 For django-rules to work, you have to hook it into your project:
 
 * Add it to the list of <code>INSTALLED_APPS</code> in <code>settings.py</code>:
+
 <pre>
- INSTALLED_APPS = {
-     ...
-     'django_rules',
- }
+INSTALLED_APPS = {
+    ...
+    'django_rules',
+}
 </pre>
 
 * Add the django-rules authorization backend to the list of <code>AUTHENTICATION_BACKENDS</code> in <code>settings.py</code>:
+
 <pre>
- AUTHENTICATION_BACKENDS = {
-     'django.contrib.auth.backends.ModelBackend', # Django's default
-     'django_rules.backends.ObjectPermissionBackend',
- }
+AUTHENTICATION_BACKENDS = {
+    'django.contrib.auth.backends.ModelBackend', # Django's default
+    'django_rules.backends.ObjectPermissionBackend',
+}
 </pre>
 
 * Run syncdb to update the database with the new django-rules models:
+
 <pre>
- python manage.py syncdb
+python manage.py syncdb
 </pre>
 
 h2(#rules). Rules
@@ -72,8 +76,9 @@ The rules should be created per-Django application. That is, under the root dire
 Once you have defined the rules in <code>rules.py</code>, you will want to activate them. To do so, for every defined rule that you want to activate you *must* add a registration point for it by calling <code>django.utils.register</code> in <code>rules.py</code>.
 
 Finally, once you have set up <code>rules.py</code> properly, you will want to sync the rules to the database. In your Django project you will have to run <code>sync_rules</code> command:
+
 <pre>
- python manage.py sync_rules
+python manage.py sync_rules
 </pre>
 
 This command will look for all your <code>rules.py</code> files under your <code>INSTALLED_APPS</code> and will sync the database with the last changes, so you do not have to run <code>syncdb</code> or rebuild the full database at all.
@@ -85,46 +90,50 @@ h2(#examples). Examples:
 h3(#ex1). Example 1: Creating a simple, compact rule for the Item model in the 'shipping' Django-application
 
 Let us image that, within the <code>shipping</code> Django-application, we have the following <code>models.py</code>:
+
 <pre>
- class Item(models.Model):
-     supplier = models.ForeignKey(User)
-     description = models.CharField(max_length = 50)
+class Item(models.Model):
+    supplier = models.ForeignKey(User)
+    description = models.CharField(max_length = 50)
 </pre>
 
 Then, imagine that the business logic in our application has a functional authorization constraint for every item such as "An item can only be shipped by its supplier". Now, to comply with the functional authorization constraint we only have to create a simple rule.
 
 First, let us start by adding an authorization constraint to the Item model. This time, we will be using a method but we could have also decided to add a boolean attribute or a boolean-returning property:
+
 <pre>
- class Item(models.Model):
-     supplier = models.ForeignKey(User)
-     description = models.CharField(max_length = 50)
- 
-     def can_ship(self, user_obj):
-         """
-         Checks if the given user_obj is the supplier of the item
-         """
-         return self.supplier == user_obj
+class Item(models.Model):
+    supplier = models.ForeignKey(User)
+    description = models.CharField(max_length = 50)
+
+    def can_ship(self, user_obj):
+        """
+        Checks if the given user_obj is the supplier of the item
+        """
+        return self.supplier == user_obj
 </pre>
 
 Then, to associate the authorization constraint with a rule, we have to set up the rule in the application's <code>rules.py</code> file:
+
 <pre>
- from django_rules import utils
- 
- rules_list = [
-     {'codename':'can_ship', 'model':'Item'},
- ]
- # NOTE:
- # Although the above rule definition follows the minimal style, it is
- # Good Practice to always add the optional 'description' field to give a
- # brief explanation about the expected behaviour of the rule.
- 
- 
- # For the rules to be active, we *must* register them:
- for rule in rules_list:
-     utils.register(app_name='shipping', **rule)
+from django_rules import utils
+
+rules_list = [
+    {'codename':'can_ship', 'model':'Item'},
+]
+# NOTE:
+# Although the above rule definition follows the minimal style, it is
+# Good Practice to always add the optional 'description' field to give a
+# brief explanation about the expected behaviour of the rule.
+
+
+# For the rules to be active, we *must* register them:
+for rule in rules_list:
+    utils.register(app_name='shipping', **rule)
 </pre>
 
 Finally, do not forget to sync the rules to make sure that all the new definitions, changes, etc. are applied to the database.
+
 <pre>
  python manage.py sync_rules
 </pre>
@@ -135,6 +144,7 @@ h3(#ex2). Example 2: Creating a more verbose rule for a slightly more complex It
 Imagine that we have a more complex Item model, say with a user-defined primary key field or perhaps a different method naming convention.
 
 For example:
+
 <pre>
  class Item(models.Model):
      code = models.AutoField(primary_key = True)    #--> user-set Primary Key
@@ -149,6 +159,7 @@ For example:
 </pre>
 
 Then, we would have to set up a more verbose rule in the application's <code>rules.py</code> file by using the optional fields, as follows:
+
 <pre>
  from django_rules import utils
  
@@ -162,6 +173,7 @@ Then, we would have to set up a more verbose rule in the application's <code>rul
 </pre>
 
 Again, do not forget to sync the rules to make sure that all the new definitions, changes, etc. are applied to the database.
+
 <pre>
  python manage.py sync_rules
 </pre>
@@ -174,6 +186,7 @@ Once you have set up a rule that implements a functional authorization constrain
 Following the previous "Example 1":#ex1, let us imagine that the application is already running with data in the database (at least one supplier and one item, both with ids equal to 1). Remember that we have already implemented, defined, registered and synced the rule <code>{'codename':'can_ship', 'model':'Item'}</code>.
 
 Then, if we wanted to check if a supplier can ship an item, we would only have to enforce the rule by doing:
+
 <pre>
 supplier = Supplier.objects.get(pk = 1)
 item = Item.objects.get(pk = 1)
@@ -187,7 +200,7 @@ Easy, right? :)
 h4. Detailed explanation of the internal flow
 
 Please note that what follows is a detailed explanation of how all the magic in django-rules flows. If you do not really care, please move along. If you want to know more, please pay great attention to the detail. Here is how all the pieces of the puzzle come together:
-* When you call <code>user_obj.has_perm(codename, model_obj)</code> Django handles the control over to the django-rules backend.
+* When you call <code>user_obj.has_perm(codename, model_obj)</code> (in the previous example, <code>supplier.has_perm('can_ship', item)</code>), Django handles the control over to the django-rules backend.
 * The django-rules backend will then try to match the <code>codename</code> with a rule. Note that we are requesting a rule with a <code>codename</code> of <code>'can_ship'</code> and a <code>model_obj</code> like the Model of the item object. Because in "Example 1":#ex1 we have defined the rule <code>{'codename':'can_ship', 'model':'Item'}</code>, there will be a match.
 * Then, django-rules will check whether <code>field_name</code> is an attribute, a property or a method, and will act accordingly. If <code>field_name</code> is a method, the django-rules backend will execute <code>model_obj.field_name(user_obj)</code> (in our "Example 1":#ex1, <code>item.can_ship(supplier)</code>).
 * Finally, if the authorization constraint implemented in <code>field_name</code> is True or returns True, the constraint is considered fulfilled. Otherwise, you will not be authorized.
@@ -207,6 +220,7 @@ If you like Python as much as I do, you will love decorators. Django has a <code
 From "the Rules section":#rules every rule has a <code>view_parameter_name</code> that is the name of the view's parameter whose value will be used to populate the primary key of the given model to instanciate an object. This argument is crucial to be able to use the decorators.
 
 For example, imagine the following code:
+
 <pre>
  from django_rules import object_permission_required
  
@@ -218,6 +232,7 @@ For example, imagine the following code:
 This decorator essentially calls <code>request.user.has_perm('can_ship', model.objects.get(pk=itemId))</code>. Thus, <code>itemId</code> (i.e. <code>view_parameter_name</code>) is essential to be able to instanciate the object with <code>model.objects.get(pk=itemId)</code>.
 
 You can pass 3 arguments to the <code>object_permission_required</code> decorator:
+
 <pre>
  @object_permission_required('can_ship', return_403=True)
  @object_permission_required('can_ship', login_url='/foobar/')
@@ -235,11 +250,13 @@ To set up centralized permissions, you will need to set in your project settings
 * <code>codename</code>: a rule name.
 
 For example, in <code>settings.py</code> you will add:
+
 <pre>
  CENTRAL_AUTHORIZATIONS = 'project.utils'
 </pre>
 
 And then, in <code>FOO/BAR.py</code>, you will implement the function:
+
 <pre>
  def central_authorizations(user_obj, perm):
      # Here you can do anything you want, this will be checked before any other rule
@@ -256,6 +273,7 @@ h2. Status and testing
 django-rules is meant to be a security application. Thus, it has been thoroughly tested. It comes with a battery of tests that try to cover all of the available funcionality. However, if you come across a bug or an irregular situation, feel free to report it through the "Github bug tracker":https://github.com/maraujop/django-rules/issues.
 
 To run tests, get into tests directory and execute:
+
 <pre>
  ./runtests.py
 </pre> 
