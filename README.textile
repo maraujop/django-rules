@@ -204,13 +204,18 @@ if supplier.has_perm('can_ship', item):
 Easy, right? :)
 
 
-h4. Detailed explanation of the internal flow
+h4. Details about the internal magic of django-rules
 
-Please note that what follows is a detailed explanation of how all the magic in django-rules flows. If you do not really care, please move along. If you want to know more, please pay great attention to the detail. Here is how all the pieces of the puzzle come together:
+Please note that what follows is a detailed explanation of how all the inner magic in django-rules flows. If you do not really care, please move along. You really do not need this details to be able to write rules and use django-rules effectively. However, if you are curious and want to know more, please pay great attention to the details below.
+
+Here is how all the pieces of the puzzle come together:
 * When you call <code>user_obj.has_perm(codename, model_obj)</code> (in the previous example, <code>supplier.has_perm('can_ship', item)</code>), Django handles the control over to the django-rules backend.
 * The django-rules backend will then try to match the <code>codename</code> with a rule. Note that we are requesting a rule with a <code>codename</code> of <code>'can_ship'</code> and a <code>model_obj</code> like the Model of the item object. Because in "Example 1":#ex1 we have defined the rule <code>{'codename':'can_ship', 'model':'Item'}</code>, there will be a match.
 * Then, django-rules will check whether <code>field_name</code> is an attribute, a property or a method, and will act accordingly. If <code>field_name</code> is a method, the django-rules backend will check if it requires no parameter or just one user parameter. Depending on the parameter requirements, it will execute <code>model_obj.field_name()</code> or <code>model_obj.field_name(user_obj)</code> (in our "Example 1":#ex1 we require a user parameter so it will execute <code>item.can_ship(supplier)</code>).
 * Finally, if the authorization constraint implemented in <code>field_name</code> is True or returns True, the constraint is considered fulfilled. Otherwise, you will not be authorized.
+
+
+h3. Details of using model methods in rules
 
 As we have seen, django-rules will check whether <code>field_name</code> is an attribute, a property or a method, and will act accordingly. You can create rules based on model's attributes and properties, which are more than fine for very simple cases but most of the time you will be setting <code>field_name</code> to a method in the model.
 
