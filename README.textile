@@ -2,7 +2,7 @@ h1. django-rules
 
 django-rules is a Django authorization backend that offers a unified, per-object authorization management. It is quite different from other authorization backends in the way it lets you flexibly manage per-object permissions.
 
-In django-rules every rule adds an authorization constraint to a given model. The authorization constraint will check if the given user complies with the constraint (e.g. if the user has the right permissions to execute a certain action over an object, etc.). The authorization constraint can be a boolean attribute, property or method of the model, whichever you prefer in each situation :)
+In django-rules every rule adds an authorization constraint to a given model. The authorization constraint will check if the given user complies with the constraint (e.g. if the user has the right permissions to execute a certain action over an object, etc.). The authorization constraint can be a boolean attribute, property or method of the model, whichever you prefer for each rule :)
 
 
 h2(#philosophy). Philosophy 
@@ -18,12 +18,12 @@ django-rules strives to build a flexible and scalable authorization backend. Why
 
 h2(#requirements). Requirements
 
-django-rules requires a proper installation of at least Django 1.2.
+django-rules requires a proper installation of Django 1.2 (at least).
 
 
 h2(#installation). Installation
 
-To install django-rules, download the source code from GitHub, change directory to the base project dir and run:
+To install django-rules, "download the source code from GitHub":https://github.com/maraujop/django-rules/, change directory to the base project dir and run:
 
 <pre>
 python setup.py install
@@ -47,7 +47,7 @@ INSTALLED_APPS = {
 
 <pre>
 AUTHENTICATION_BACKENDS = {
-    'django.contrib.auth.backends.ModelBackend', # Django's default
+    'django.contrib.auth.backends.ModelBackend', # Django's default auth backend
     'django_rules.backends.ObjectPermissionBackend',
 }
 </pre>
@@ -60,20 +60,20 @@ python manage.py syncdb
 
 h2(#rules). Rules
 
-A rule generally implements a functional authorization constraint.
+A rule represents a functional authorization constraint that restricts the actions that a certain user can carry out on a certain object (model instance).
 
 Every rule definition is composed of 6 parameters (3 compulsory and 3 optional):
-* <code>app_name</code>: The name of the app to which the rule apply.
+* <code>app_name</code>: The name of the app to which the rule applies.
 * <code>codename</code>: The name of the rule, _unique across all applications_. It should be a brief but distinctive name.
 * <code>model</code>: The name of the model associated with the rule.
 
 * <code>field_name</code> _(optional)_: The name of the boolean attribute, property or method of the model that implements the authorization constraint. If not set, it defaults to the value of the compulsory field <code>codename</code>.
-* <code>view_parameter_name</code> _(optional)_: The primary key of the model (we use it in the views for getting the actual instance of the model). If not set, it defaults to the model's primary key field name. Note that this must be set if you want to use the decorator that comes with django-rules.
+* <code>view_param_pk</code> _(optional)_: The primary key of the model (we use it in the views for getting the actual instance of the model). If not set, it defaults to the model's primary key field name. Note that if the name of the parameter of the view that holds the value of the object's primary key does not match the name of the primary key of the model, the new name must be specified in this parameter.
 * <code>description</code> _(optional)_: A brief (140 characters maximum) description explaining the expected behaviour of the authorization constraint. Although optional, it is considered a Good Practice ^TM^ and should always be used.
 
 The rules should be created per-Django application. That is, under the root directory of the Django-application in which you want to create rules, you should have a <code>rules.py</code> containing only the declarations of those rules specific to that Django-application.
 
-Once you have defined the rules in <code>rules.py</code>, you will want to activate them. To do so, for every defined rule that you want to activate you *must* add a registration point for it by calling <code>django.utils.register</code> in <code>rules.py</code>.
+Once you have defined the rules in <code>rules.py</code>, you will want to activate them. To do so, for every defined rule that you want to activate you *must* add a registration point for it by calling <code>django_rules.utils.register</code> in <code>rules.py</code>.
 
 Finally, once you have set up <code>rules.py</code> properly, you will want to sync the rules to the database. In your Django project you will have to run <code>sync_rules</code> command:
 
@@ -135,55 +135,61 @@ for rule in rules_list:
 Finally, do not forget to sync the rules to make sure that all the new definitions, changes, etc. are applied to the database.
 
 <pre>
- python manage.py sync_rules
+python manage.py sync_rules
 </pre>
 
 
-h3(#ex2). Example 2: Creating a more verbose rule for a slightly more complex Item model
+h3(#ex2). Example 2: Creating a rule that does not follow the naming conventions
 
-Imagine that we have a more complex Item model, say with a user-defined primary key field or perhaps a different method naming convention.
-
-For example:
+Imagine that we would like to name our authorization constraints however we want. For example, let us change the previous Item model:
 
 <pre>
- class Item(models.Model):
-     code = models.AutoField(primary_key = True)    #--> user-set Primary Key
-     supplier = models.ForeignKey(User)
-     description = models.CharField(max_length = 50)
- 
-     def isSameSupplier(self, user_obj):    #--> change in the name convention of the authorization constraint
-         """
-         Checks if the given user_obj is the supplier of the item
-         """
-         return self.supplier == user_obj
+class Item(models.Model):
+    supplier = models.ForeignKey(User)
+    description = models.CharField(max_length = 50)
+
+    def isSameSupplier(self, user_obj):    #--> change in the name convention of the authorization constraint
+        """
+        Checks if the given user_obj is the supplier of the item
+        """
+        return self.supplier == user_obj
 </pre>
 
-Then, we would have to set up a more verbose rule in the application's <code>rules.py</code> file by using the optional fields, as follows:
+Then, we would have to set up a more verbose rule in the application's <code>rules.py</code> file by using the additional optional fields. This time, only <code>field_name</code> would be needed, but it is also Good Practice ^TM^ to give a brief <code>description</code>:
 
 <pre>
- from django_rules import utils
- 
- rules_list = [
-     {'codename':'can_ship', 'field_name':'isSameSupplier', 'model':'Item', 'view_parameter_name':'code', 'description':'Checks if the given user is the supplier of the item'},
- ]
- 
- # For the rules to be active, we *must* register them:
- for rule in rules_list:
-     utils.register(app_name='shipping', **rule)
+from django_rules import utils
+
+rules_list = [
+    {'codename':'can_ship', 'model':'Item', 'field_name':'isSameSupplier',
+     'description':'Checks if the given user is the supplier of the item'},
+]
+
+# For the rules to be active, we *must* register them:
+for rule in rules_list:
+    utils.register(app_name='shipping', **rule)
 </pre>
 
 Again, do not forget to sync the rules to make sure that all the new definitions, changes, etc. are applied to the database.
 
 <pre>
- python manage.py sync_rules
+python manage.py sync_rules
 </pre>
 
 
 h3. Using your rules
 
-Once you have set up a rule that implements a functional authorization constraint, you can (and should :) use it in your application. It is really simple! In every place you want to enforce an authorization constraint on a user, you will simply make the following call: <code>user_obj.has_perm(codename, model_obj)</code>.
+Once you have set up a rule that implements a functional authorization constraint, you can (and should :) use it in your application. It is really simple! In every place you want to enforce an authorization constraint on a user, you will simply make the following call:
 
-Following the previous "Example 1":#ex1, let us imagine that the application is already running with data in the database (at least one supplier and one item, both with ids equal to 1). Remember that we have already implemented, defined, registered and synced the rule <code>{'codename':'can_ship', 'model':'Item'}</code>.
+<pre>
+user_obj.has_perm(codename, model_obj)
+</pre>
+
+Following the previous "Example 1":#ex1, let us imagine that the application is already running with data in the database (at least one supplier and one item, both with ids equal to 1). Remember that we have already implemented, defined, registered and synced the following rule:
+
+<pre>
+{'codename':'can_ship', 'model':'Item'}
+</pre>
 
 Then, if we wanted to check if a supplier can ship an item, we would only have to enforce the rule by doing:
 
@@ -202,12 +208,12 @@ h4. Detailed explanation of the internal flow
 Please note that what follows is a detailed explanation of how all the magic in django-rules flows. If you do not really care, please move along. If you want to know more, please pay great attention to the detail. Here is how all the pieces of the puzzle come together:
 * When you call <code>user_obj.has_perm(codename, model_obj)</code> (in the previous example, <code>supplier.has_perm('can_ship', item)</code>), Django handles the control over to the django-rules backend.
 * The django-rules backend will then try to match the <code>codename</code> with a rule. Note that we are requesting a rule with a <code>codename</code> of <code>'can_ship'</code> and a <code>model_obj</code> like the Model of the item object. Because in "Example 1":#ex1 we have defined the rule <code>{'codename':'can_ship', 'model':'Item'}</code>, there will be a match.
-* Then, django-rules will check whether <code>field_name</code> is an attribute, a property or a method, and will act accordingly. If <code>field_name</code> is a method, the django-rules backend will execute <code>model_obj.field_name(user_obj)</code> (in our "Example 1":#ex1, <code>item.can_ship(supplier)</code>).
+* Then, django-rules will check whether <code>field_name</code> is an attribute, a property or a method, and will act accordingly. If <code>field_name</code> is a method, the django-rules backend will check if it requires one user parameter (the only possibility). Depending on the parameter requirements, it will execute <code>model_obj.field_name()</code> or <code>model_obj.field_name(user_obj)</code> (in our "Example 1":#ex1 we require a user parameter so it will execute <code>item.can_ship(supplier)</code>).
 * Finally, if the authorization constraint implemented in <code>field_name</code> is True or returns True, the constraint is considered fulfilled. Otherwise, you will not be authorized.
 
 h4. More complex internal details
 
-As we have seen, you can create rules on model's attributes and properties. These are fine for very simple cases, but most of the time, you will be setting <code>field_name</code> to a method in the model. You might be thinking that since it is a method, you will have to specify the argument. This is quite correct and at the moment, only one automatic argument is supported and it must be a user object. The catch is that django-rules is smart enough to grab the <code>user_obj</code> from the <code>has_perms</code> call and pass it to the method. Nifty, isn't it? :)
+As we have seen, you can create rules on model's attributes and properties. These are fine for very simple cases, but most of the time, you will be setting <code>field_name</code> to a method in the model. You might be thinking that since it is a method, you will have to specify the argument. This is quite correct and at the moment, only one automatic argument is supported and it must be a user object. The catch is that django-rules is smart enough to grab the <code>user_obj</code> from the <code>has_perm()</code> call and pass it to the method. Nifty, isn't it? :)
 
 However, you need to be aware of something. A method assigned to a rule (let's call them rule methods from now on) should never call any other method. That is, they should be self-contained. This is to avoid infinite loops. Imagine a situation where the rule method calls another method that has _the same_ authorization constraint of the rule method. Boom! You just created an infinite loop. Run for your life! :)
 
@@ -217,55 +223,107 @@ h3. Decorators
 
 If you like Python as much as I do, you will love decorators. Django has a <code>permission_required</code> decorator, so it felt natural that django-rules implemented an <code>object_permission_required</code> decorator.
 
-From "the Rules section":#rules every rule has a <code>view_parameter_name</code> that is the name of the view's parameter whose value will be used to populate the primary key of the given model to instanciate an object. This argument is crucial to be able to use the decorators.
-
-For example, imagine the following code:
+Imagine that for our "Example 1":#ex1 we have the following code in <code>views.py</code>:
 
 <pre>
- from django_rules import object_permission_required
- 
- @object_permission_required('can_ship')
- def ship_item_view(request, itemId):
-     return HttpResponse('success')
+def ship_item(request, id):
+    item = Item.objects.get(pk = id)
+    
+    if request.user.has_perms('can_ship', item):
+        response = HttpResponse('success')
+    else:
+        response = HttpResponse('error')
+    
+    return response
 </pre>
 
-This decorator essentially calls <code>request.user.has_perm('can_ship', model.objects.get(pk=itemId))</code>. Thus, <code>itemId</code> (i.e. <code>view_parameter_name</code>) is essential to be able to instanciate the object with <code>model.objects.get(pk=itemId)</code>.
-
-You can pass 3 arguments to the <code>object_permission_required</code> decorator:
+We could easily decorate the view to make the method much more compact and easy to read:
 
 <pre>
- @object_permission_required('can_ship', return_403=True)
- @object_permission_required('can_ship', login_url='/foobar/')
- @object_permission_required('can_ship', redirect_field_name='/whatever/')
+from django_rules import object_permission_required
+
+@object_permission_required('can_ship')
+def ship_item(request, id):
+    return HttpResponse('success')
+</pre>
+
+The decorator's magic lies in being able to match the rule and get the type of model from it. Then, it gets the <code>id</code> parameter from the request and instanciates an item object with <code>item = model.objects.get(pk = id)</code>. Finally, it can call the <code>request.user.has_perm('can_ship', item)</code> for you and redirect to a fail page if the constraint is not met.
+
+Note how we have maintained in the view parameter the name of the model's primary key. If the parameter has a name that does not match the name of the primary key in the model, remember that we will have to add another optional parameter to the rule. From "the Rules section":#rules :
+* <code>view_param_pk</code> _(optional)_: The primary key of the model (we use it in the views for getting the actual instance of the model). If not set, it defaults to the model's primary key field name. Note that if the name of the parameter of the view that holds the value of the object's primary key does not match the name of the primary key of the model, the new name must be specified in this parameter.
+
+For example, if we modify the parameter of the view:
+
+<pre>
+from django_rules import object_permission_required
+
+@object_permission_required('can_ship')
+def ship_item(request, my_item_code):  #--> change in the naming of the parameter in the view
+    return HttpResponse('success')
+</pre>
+
+We would have to specify the <code>view_param_pk</code> in the rule definition:
+
+<pre>
+rules_list = [
+    {'codename':'can_ship', 'model':'Item', 'view_param_pk':'my_item_code',
+     'description':'Checks if the given user is the supplier of the item'},
+]
+</pre>
+
+
+Finally, you can pass 3 arguments to the <code>object_permission_required</code> decorator:
+
+<pre>
+@object_permission_required('can_ship', return_403=True)
+@object_permission_required('can_ship', login_url='/foobar/')
+@object_permission_required('can_ship', redirect_field_name='/whatever/')
 </pre>
 
 By default, <code>return_403</code> is set to False, <code>redirect_field_name</code> is set to an empty string and <code>login_url</code> is set to <code>settings.LOGIN_URL</code>. Thus, if the authorization constraint is not fulfilled, the decorator will default to a redirect to the login page.
+
 
 h3. Centralized Permissions
 
 django-rules has a central authorization dispatcher that is aimed towards a very common need in real life projects: the special, privileged groups such as administrators, user-support staff, etc., that have permissions to override certain aspects of the authorization constraints in the applications. For such cases, django-rules has a way to let you bypass authorization system for whatever reasons you have.
 
-To set up centralized permissions, you will need to set in your project settings the variable <code>CENTRAL_AUTHORIZATIONS</code> pointing to a module. Within that module, you will have to define a <code>central_authorizations</code>function, that is, a boolean-returning homonym function with exactly two parameters:
-* <code>user_obj</code>: a user object.
-* <code>codename</code>: a rule name.
+To set up centralized permissions, you will need to set in your project settings the variable <code>CENTRAL_AUTHORIZATIONS</code> pointing to a module. Within that module, you will have to define a <code>central_authorizations</code> function, that must be spelled like that and must be a boolean-returning function with exactly two parameters:
+* <code>user_obj</code>: the user object.
+* <code>codename</code>: the codename of the rule we will be overriding. It is very useful to refine the permissions of a special user, "a la ACL".
+Note that, although the naming of the parameters does not matter, the order does. The first parameter will receive a user object, and the second parameter, the codename of the rule.
+
+This <code>central_authorizations()</code> function will be called *before* any other rule, so you can override them.
 
 For example, in <code>settings.py</code> you will add:
 
 <pre>
- CENTRAL_AUTHORIZATIONS = 'project.utils'
+CENTRAL_AUTHORIZATIONS = 'myProjectFoo.utils'
 </pre>
 
-And then, in <code>FOO/BAR.py</code>, you will implement the function:
+And then, within myProjectFoo, in <code>utils.py</code>, you will implement the function with the overrides for the special users.
+
+Imagine you want to give some special access to you über-admins (generally the developers) so that while they develop, they can access anything within the application. Also, you want to have some user support staff that will be able to access some private fields in the profile (for example, email and age) that generally are hidden to regular users of the application. They are user support, so they should not be able to override certain things in the application.
+
+In such case, you can write the following <code>central_authorizations()</code> function:
 
 <pre>
- def central_authorizations(user_obj, perm):
-     # Here you can do anything you want, this will be checked before any other rule
-     if user_obj.get_profile().isUserSupport() and perm in ['myCodename']:
-         return True
-     ...
+def central_authorizations(user_obj, codename):
+    """
+    This function will be called *before* any other rule,
+    so you can override permissions.
+    """
+    isAuthorized = False
+
+    if user_obj.get_profile().isUberAdmin():
+        isAuthorized = True
+    elif user_obj.get_profile().isUserSupport() and \
+         codename in ['can_see_full_profile', 'can_delete_photo']:
+        isAuthorized = True
+
+    return isAuthorized
 </pre>
 
-As you can imagine, everything that is checked in <code>central_authorizations</code> is global to the whole project.
+As you can imagine, everything that is checked in <code>central_authorizations</code> is global to the *whole* project.
 
 
 h2. Status and testing
@@ -275,7 +333,7 @@ django-rules is meant to be a security application. Thus, it has been thoroughly
 To run tests, get into tests directory and execute:
 
 <pre>
- ./runtests.py
+./runtests.py
 </pre> 
 
 It should always say OK. If not, there is a broken test that I hope you will be reporting soon :)
@@ -290,8 +348,8 @@ I have done my best trying to explain the concept behind django-rules, but if yo
 
 h2. More Documentation
 
-In case you want to know where all this "per-object authentication backend in Django" came to exists, you should at least read the following links:
+In case you want to know where all this "per-object authentication backend in Django" came to exist, you should at least read the following links:
 * A great article about "per-object permission backends in Django":http://djangoadvent.com/1.2/object-permissions/ by Florian Apolloner
 * Also, check the explanation of the changes introduced when fixing the "django ticket #11010":http://code.djangoproject.com/ticket/11010
 
-Finally, my most sincere appreciation goes to everybody that contributes to the wonderful Django development framework and also to the rest of developers and committers that help and contribute to django-rules
+Finally, my most sincere appreciation goes to everybody that contributes to the wonderful Django development framework and also to the rest of developers and committers that build django-rules with their help. Respect! :)
