@@ -13,7 +13,7 @@ def register(app_name, codename, model, field_name='', view_param_pk='', descrip
     """
     # We get the `ContentType` for that `model` within that `app_name`
     try:
-        ctype = ContentType.objects.get(app_label = app_name, model = model)
+        ctype = ContentType.objects.get(app_label = app_name, model = model.lower())
     except ContentType.DoesNotExist:
         sys.stderr.write('! Rule codenamed %s will not be synced as model %s was not found for app %s\n' % (codename, model, app_name))
         return
