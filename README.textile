@@ -68,7 +68,7 @@ Every rule definition is composed of 6 parameters (3 compulsory and 3 optional):
 * <code>model</code>: The name of the model associated with the rule.
 
 * <code>field_name</code> _(optional)_: The name of the boolean attribute, property or method of the model that implements the authorization constraint. If not set, it defaults to the value of the compulsory field <code>codename</code>.
-* <code>view_param_pk</code> _(optional)_: The primary key of the model (we use it in the views for getting the actual instance of the model). If not set, it defaults to the model's primary key field name. Note that if the name of the parameter of the view that holds the value of the object's primary key does not match the name of the primary key of the model, the new name must be specified in this parameter.
+* <code>view_param_pk</code> _(optional)_: The name of the primary key of the model. It is used in the views for getting the actual instance of the model. If not set, it defaults to the name of the model's primary key field. Note that if the name of the parameter of the view that holds the value of the object's primary key does not match the name of the primary key of the model, the new name must be specified in this parameter.
 * <code>description</code> _(optional)_: A brief (140 characters maximum) description explaining the expected behaviour of the authorization constraint. Although optional, it is considered a Good Practice ^TM^ and should always be used.
 
 The rules should be created per-Django application. That is, under the root directory of the Django-application in which you want to create rules, you should have a <code>rules.py</code> containing only the declarations of those rules specific to that Django-application.
@@ -250,7 +250,7 @@ def ship_item(request, id):
 The decorator's magic lies in being able to match the rule and get the type of model from it. Then, it gets the <code>id</code> parameter from the request and instanciates an item object with <code>item = model.objects.get(pk = id)</code>. Finally, it can call the <code>request.user.has_perm('can_ship', item)</code> for you and redirect to a fail page if the constraint is not met.
 
 Note how we have maintained in the view parameter the name of the model's primary key. If the parameter has a name that does not match the name of the primary key in the model, remember that we will have to add another optional parameter to the rule. From "the Rules section":#rules :
-* <code>view_param_pk</code> _(optional)_: The primary key of the model (we use it in the views for getting the actual instance of the model). If not set, it defaults to the model's primary key field name. Note that if the name of the parameter of the view that holds the value of the object's primary key does not match the name of the primary key of the model, the new name must be specified in this parameter.
+* <code>view_param_pk</code> _(optional)_: The name of the primary key of the model. It is used in the views for getting the actual instance of the model. If not set, it defaults to the name of the model's primary key field. Note that if the name of the parameter of the view that holds the value of the object's primary key does not match the name of the primary key of the model, the new name must be specified in this parameter.
 
 For example, if we modify the parameter of the view:
 
