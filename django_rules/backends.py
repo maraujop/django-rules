@@ -51,9 +51,11 @@ class ObjectPermissionBackend(object):
                 raise RulesError('Error module %s does not have a central_authorization function"' % (module))
             
             try:
-                value = central_authorizations(user_obj, perm)
-                if not isinstance(value, bool):
-                    raise NotBooleanPermission("central_authorizations did not return a boolean value")
+                is_authorized = central_authorizations(user_obj, perm)
+                # If the value returned is a boolean we pass it up and stop checking 
+                # If not, we continue checking
+                if isinstance(is_authorized, bool):
+                    return is_authorized
 
             except TypeError:
                 raise RulesError('central_authorizations should receive 2 parameters: (user_obj, perm)')
@@ -83,17 +85,17 @@ class ObjectPermissionBackend(object):
                                         (rule.field_name, rule.content_type.model, rule.codename))
 
         if not callable(bound_field):
-            return bound_field
-
-        # Otherwise it is a callabe bound_field
-        # Let's see if we pass or not user_obj as a parameter
-        if (len(inspect.getargspec(bound_field)[0]) == 2):
-            value = bound_field(user_obj)
+            is_authorized = bound_field
         else:
-            value = bound_field()
+            # Otherwise it is a callabe bound_field
+            # Let's see if we pass or not user_obj as a parameter
+            if (len(inspect.getargspec(bound_field)[0]) == 2):
+                is_authorized = bound_field(user_obj)
+            else:
+                is_authorized = bound_field()
 
-        if not isinstance(value, bool):
-            raise NotBooleanPermission("Callable %s from model %s on rule %s does not return a boolean value",
-                                        (rule.field_name, rule.content_type.model, rule.codename))
+            if not isinstance(is_authorized, bool):
+                raise NotBooleanPermission("Callable %s from model %s on rule %s does not return a boolean value",
+                                            (rule.field_name, rule.content_type.model, rule.codename))
 
-        return value
+        return is_authorized
