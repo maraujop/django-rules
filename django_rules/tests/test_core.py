@@ -21,6 +21,7 @@ class BackendTest(TestCase):
             self.fail("You need to define an ANONYMOUS_USER_ID in your settings file")
         
         self.user = User.objects.get_or_create(username='javier', is_active=True)[0]
+        self.otherUser = User.objects.get_or_create(username='juan', is_active=True)[0]
         self.superuser = User.objects.get_or_create(username='miguel', is_active=True, is_superuser=True)[0]
         self.not_active_superuser = User.objects.get_or_create(username='rebeca', is_active=False, is_superuser=True)[0]
         self.obj = Dummy.objects.get_or_create(supplier=self.user)[0]
@@ -32,6 +33,9 @@ class BackendTest(TestCase):
     
     def test_regularuser_has_perm(self):
         self.assertTrue(self.user.has_perm('can_ship', self.obj))
+    
+    def test_regularuser_has_not_perm(self):
+        self.assertFalse(self.otherUser.has_perm('can_ship', self.obj))
     
     def test_regularuser_has_property_perm(self):
         """
@@ -86,9 +90,14 @@ class BackendTest(TestCase):
 
         self.assertTrue(self.user.has_perm('canTrash', self.obj))
 
-    def test_central_authorizations_right_module(self):
+    def test_central_authorizations_right_module_checked_within(self):
         settings.CENTRAL_AUTHORIZATIONS = 'utils'
-        self.assertTrue(self.user.has_perm('can_ship', self.obj))
+        self.assertTrue(self.otherUser.has_perm('all_can_pass', self.obj))
+        del settings.CENTRAL_AUTHORIZATIONS
+
+    def test_central_authorizations_right_module_passes_over(self):
+        settings.CENTRAL_AUTHORIZATIONS = 'utils'
+        self.assertFalse(self.otherUser.has_perm('can_ship', self.obj))
         del settings.CENTRAL_AUTHORIZATIONS
 
     def test_central_authorizations_wrong_module(self):
@@ -117,13 +126,6 @@ class RulePermissionTest(TestCase):
         self.assertRaises(NonexistentFieldName, lambda:RulePermission.objects.get_or_create(codename='can_ship', field_name='invalidField', content_type=self.ctype, 
                                                                         view_param_pk='idDummy', description="Only supplier have the authorization to ship"))
         
-
-class RulePermissionTest(TestCase):
-    def setUp(self):
-        self.user = User.objects.get_or_create(username='javier', is_active=True)[0]
-        self.obj = Dummy.objects.get_or_create(supplier=self.user)[0]
-        self.ctype = ContentType.objects.get_for_model(self.obj)
-
     def test_invalid_field_name(self):
         self.assertRaises(NonexistentFieldName, lambda:RulePermission.objects.get_or_create(codename='can_ship', field_name='invalidField', content_type=self.ctype, 
                                                                         view_param_pk='idDummy', description="Only supplier have the authorization to ship"))
