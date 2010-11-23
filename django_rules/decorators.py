@@ -7,6 +7,7 @@ from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
 from django.utils.functional import wraps
 from django.shortcuts import get_object_or_404
+from django.core.urlresolvers import NoReverseMatch, reverse
 
 from exceptions import RulesError
 from exceptions import NonexistentPermission
@@ -39,6 +40,7 @@ def object_permission_required(perm, **kwargs):
     """
 
     login_url = kwargs.pop('login_url', settings.LOGIN_URL)
+    redirect_url = kwargs.pop('redirect_url', "")
     redirect_field_name = kwargs.pop('redirect_field_name', REDIRECT_FIELD_NAME)
     return_403 = kwargs.pop('return_403', False)
 
@@ -50,7 +52,7 @@ def object_permission_required(perm, **kwargs):
     def decorator(view_func):
         def _wrapped_view(request, *args, **kwargs):
             obj = None
-
+            
             try:
                 rule = RulePermission.objects.get(codename = perm)
             except RulePermission.DoesNotExist:
@@ -70,9 +72,19 @@ def object_permission_required(perm, **kwargs):
                 if return_403:
                     return HttpResponseForbidden()
                 else:
-                    path = urlquote(request.get_full_path())
-                    tup = login_url, redirect_field_name, path
-                    return HttpResponseRedirect("%s?%s=%s" % tup)
+                    if redirect_url:
+                        try:
+                            path = urlquote(request.get_full_path())
+                            redirect_url_reversed = reverse(redirect_url)
+                            tup = redirect_url_reversed, redirect_field_name, path
+                        except NoReverseMatch:
+                            tup = redirect_url, redirect_field_name, path
+
+                        return HttpResponseRedirect("%s?%s=%s" % tup)
+                    else:
+                        path = urlquote(request.get_full_path())
+                        tup = login_url, redirect_field_name, path
+                        return HttpResponseRedirect("%s?%s=%s" % tup)
 
             return view_func(request, *args, **kwargs)
         return wraps(view_func)(_wrapped_view)
