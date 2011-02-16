@@ -63,7 +63,7 @@ class ObjectPermissionBackend(object):
         # Note:
         # is_active and is_superuser are checked by default in django.contrib.auth.models
         # lines from 301-306 in Django 1.2.3
-        # So we don't double check, If this changes tests will catch it
+	# If this checks dissapear in mainstream, tests will fail, so we won't double check them :)
         ctype = ContentType.objects.get_for_model(obj)
 
         # We get the rule data and return the value of that rule
