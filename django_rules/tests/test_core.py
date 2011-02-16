@@ -151,7 +151,7 @@ class UtilsTest(TestCase):
     def test_register_valid_rules(self):
         rules_list = [
             # Dummy model
-            {'codename':'can_ship', 'model':'dummy', 'field_name':'canShip', 'view_param_pk':'idView', 'description':"Only supplier has the authorization to ship"},
+            {'codename':'can_ship', 'model':'Dummy', 'field_name':'canShip', 'view_param_pk':'idView', 'description':"Only supplier has the authorization to ship"},
         ]
 
         try:
@@ -163,7 +163,7 @@ class UtilsTest(TestCase):
     def test_register_invalid_rules_NonexistentFieldName(self):
         rules_list = [
             # Dummy model
-            {'codename':'can_ship', 'model':'dummy', 'field_name':'canSship', 'view_param_pk':'idView', 'description':"Only supplier has the authorization to ship"},
+            {'codename':'can_ship', 'model':'Dummy', 'field_name':'canSship', 'view_param_pk':'idView', 'description':"Only supplier has the authorization to ship"},
         ]
 
         for params in rules_list:
@@ -172,7 +172,7 @@ class UtilsTest(TestCase):
     def test_register_valid_rules_compact_style(self):
         rules_list = [
             # Dummy model
-            {'codename':'canShip', 'model':'dummy'},
+            {'codename':'canShip', 'model':'Dummy'},
         ]
 
         try:
