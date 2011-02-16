@@ -1,4 +1,9 @@
+/.hg
 *.py[co]
+*.swp
+*~
+/nbproject
+/.idea
 /build
 /dist
 /django_rules.egg-info
