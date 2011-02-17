@@ -79,13 +79,11 @@ def object_permission_required(perm, **kwargs):
                             tup = redirect_url_reversed, redirect_field_name, path
                         except NoReverseMatch:
                             tup = redirect_url, redirect_field_name, path
-
-                        return HttpResponseRedirect("%s?%s=%s" % tup)
                     else:
                         path = urlquote(request.get_full_path())
                         tup = login_url, redirect_field_name, path
-                        return HttpResponseRedirect("%s?%s=%s" % tup)
 
+                    return HttpResponseRedirect("%s?%s=%s" % tup)
             return view_func(request, *args, **kwargs)
         return wraps(view_func)(_wrapped_view)
     return decorator
