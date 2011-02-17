@@ -72,7 +72,7 @@ Every rule definition is composed of 6 parameters (3 compulsory and 3 optional):
 * <code>model</code>: The name of the model associated with the rule.
 
 * <code>field_name</code> _(optional)_: The name of the boolean attribute, property or method of the model that implements the authorization constraint. If not set, it defaults to the value of the compulsory field <code>codename</code>.
-* <code>view_param_pk</code> _(optional)_: The name of the primary key of the model. It is used in the views for getting the actual instance of the model. If not set, it defaults to the name of the primary key field in the model. Note that if the name of the parameter of the view that holds the value of the object's primary key doesn't match the name of the primary key of the model, the new name must be specified in this parameter (we will talk about this special case in "the section on Decorators:":#decorators).
+* <code>view_param_pk</code> _(optional)_: The view parameter's name to use for getting the primary key of the model. It is used in the decorated views for getting the actual instance of the model, the object where authorizations will be checked on. If not set, it defaults to the name of the primary key field in the model. Note that if the name of the parameter of the view that holds the value of the object's primary key doesn't match the name of the primary key of the model, the new name must be specified in this parameter (we will talk about this special case in "the section on Decorators":#decorators).
 * <code>description</code> _(optional)_: A brief (140 characters maximum) description explaining the expected behaviour of the authorization constraint. Although optional, it is considered a Good Practice ^TM^ and should always be used.
 
 The rules should be created per-Django application. That is, under the root directory of the Django-application in which you want to create rules, you should have a <code>rules.py</code> containing only the declarations of those rules specific to that Django-application.
@@ -210,7 +210,7 @@ Easy, right? :)
 
 h4. Details about the internal magic of django-rules
 
-Please note that what follows is a detailed explanation of how all the inner magic in django-rules flows. If you don't really care, please move along. You really don't need this details to be able to write rules and use django-rules effectively. However, if you are curious and want to know more, please pay great attention to the details below.
+Please note that what follows is a detailed explanation of how all the inner magic in django-rules flows. If you don't really care, please move along. You really don't need these details to be able to write rules and use django-rules effectively. However, if you are curious and want to know more, please pay great attention to the details below.
 
 Here is how all the pieces of the puzzle come together:
 * When you call <code>user_obj.has_perm(codename, model_obj)</code> (in the previous example, <code>supplier.has_perm('can_ship', item)</code>), Django handles the control over to the django-rules backend.
@@ -225,9 +225,9 @@ As we have seen, django-rules will check whether <code>field_name</code> is an a
 
 It is important to note that this method is limited to having just one parameter (a user object) or no parameters at all. It cannot receive multiple arguments or an argument that is not an instance of User. Although this might seem like a limitation, we could not think of a use case where the rest of the information needed coudn't be retrieved from the user or the model object. If you get into a situation where this is limiting you, please get in touch and explain your problem so that we can think of how to get around it! :)
 
-Finally, you need to be aware of something very important: a method assigned to a rule (let's call them _rule methods_ from now on) *should never call any other method*. That is, they should be self-contained. This is to avoid a potential infinite recursion. Imagine a situation where the rule method calls another method that has _the same_ authorization constraint of the rule method. Boom! You just created an infinite loop. Run for your life! :)
+Finally, you need to be aware of something very important: a method assigned to a rule (let's call them _rule methods_ from now on) *should never call any other method*. That is, they should be self-contained. This is to avoid a potential infinite recursion. Imagine a situation where the rule method calls another method that has _the same_ authorization constraint of the previous rule method. Boom! You just created an infinite loop. Run for your life! :)
 
-You may be thinking you can control this but, trust me, it will get very difficult to maintain and scale. Things will not always be that simple, maybe you will end up calling a method that is later modified and ends up calling a helper function that triggers the same authorization loop. Yeah, I know. Indirection is a bitch :) Or, in other words "Great power comes with great responsibility". So beware of the infinite loop ;)
+You may be thinking that you can control this but, trust me, it will get very difficult to maintain and scale. Things will not always be that simple, maybe you will end up calling a method that is later modified and ends up calling a helper function that triggers the same authorization loop. Yeah, I know. Indirection is a bitch :) Or, in other words "Great power comes with great responsibility". So beware of the infinite loop ;)
 
 
 h3(#decorators). Decorators
@@ -256,10 +256,10 @@ def ship_item(request, id):
     return HttpResponse('Item successfully shipper! :)')
 </pre>
 
-The magic of the decorator is very cool indeed. First, it matches the rule and gets the type of model from it. Then, it gets the <code>id</code> parameter from the request and instantiates a Model object with <code>item = model.objects.get(pk = id)</code>. Finally, it can call the <code>request.user.has_perm('can_ship', item)</code> for you and redirect to a fail page if the constraint is not fulfilled.
+The magic of the decorator is very cool indeed. First, it matches the rule and gets the type of model from it. Then, it gets the <code>id</code> parameter from the view's kwargs and instantiates a Model object with <code>item = model.objects.get(pk = id)</code>. Finally, it can call the <code>request.user.has_perm('can_ship', item)</code> for you and redirect to a fail page if the constraint is not fulfilled.
 
-Note how we have maintained the name of the model's primary key in the parameters of the view . If the parameter has a name that doesn't match the name of the primary key in the model, remember that we will have to add another optional parameter to the rule. From "the section on Rules:":#rules
-* <code>view_param_pk</code> _(optional)_: The name of the primary key of the model. It is used in the views for getting the actual instance of the model. If not set, it defaults to the name of the primary key field in the model. Note that if the name of the parameter of the view that holds the value of the object's primary key doesn't match the name of the primary key of the model, the new name must be specified in this parameter.
+Note how we have maintained the name of the model's primary key in the parameters of the view. If the parameter has a name that doesn't match the name of the primary key in the model, remember that we will have to add another optional parameter to the rule. From "the section on Rules:":#rules
+* <code>view_param_pk</code> _(optional)_: The view parameter's name to use for getting the primary key of the model. It is used in the decorated views for getting the actual instance of the model. If not set, it defaults to the name of the primary key field in the model. Note that if the name of the parameter of the view that holds the value of the object's primary key doesn't match the name of the primary key of the model, the new name must be specified in this parameter.
 
 For example, if we modify the parameter of the view:
 
@@ -275,8 +275,8 @@ We would have to specify the <code>view_param_pk</code> in the rule definition:
 
 <pre>
 rules_list = [
-    {'codename':'can_ship', 'model':'Item', 'view_param_pk':'my_item_code',
-     'description':'Checks if the given user is the supplier of the item'},
+    {'codename': 'can_ship', 'model': 'Item', 'view_param_pk': 'my_item_code',
+     'description': 'Checks if the given user is the supplier of the item'},
 ]
 </pre>
 
@@ -309,7 +309,7 @@ Let's see an example:
 <pre>
 def item_shipper(request, id):
     internal_code = 'XXX-' + my_item_code
-    return _ship_item(request, id=internal_code)
+    return _ship_item(request, id=internal_code)    # instead of doing return _ship_item(request, internal_code)
 
 @object_permission_required('can_ship')
 def _ship_item(request, id)
@@ -335,7 +335,7 @@ CENTRAL_AUTHORIZATIONS = 'myProjectFoo.utils'
 
 And then, within myProjectFoo, in <code>utils.py</code>, you will implement the <code>central_authorizations()</code> function with the overrides for the special users.
 
-Imagine you want to give some special access to user support staff that will be able to access some private fields in the profile (for example, email and age) that generally are hidden to regular users of the application. They are user support, so they should not be able to override certain things in the application. Yet, you also want your über-admins (generally the developers) to be able toaccess anything within the application so that they can code and test quickly while developing.
+Imagine you want to give some special access to user support staff that will be able to access some private fields in the profile (for example, email and age) that generally are hidden to regular users of the application. They are user support, so they should not be able to override certain things in the application. Yet, you also want your über-admins (generally the developers) to be able to access anything within the application so that they can code and test quickly while developing.
 
 In such case, you can write the following <code>central_authorizations()</code> function:
 
@@ -363,7 +363,7 @@ h2. Status and testing
 
 django-rules is meant to be a security application. Thus, it has been thoroughly tested. It comes with a battery of tests that tries to cover all of the available funcionality. However, if you come across a bug or an irregular situation, feel free to report it through the "Github bug tracker":https://github.com/maraujop/django-rules/issues.
 
-Finally, the application comes geared with many different exceptions that will make sure rules are created properly. They are also aimed to keep the security of your application away from negligence. Manage the exceptions wisely and you will be a happy and secure coder security is kept away from neglicence. You should manage them carefuly.
+Finally, the application comes geared with many different exceptions that will make sure rules are created properly. They are also aimed to keep the security of your application away from negligence. Manage the exceptions wisely and you will be a happy and secure coder, as security is kept away from possible neglicence. You should manage them carefuly.
 
 
 h3. Testing django-rules
