@@ -11,7 +11,7 @@ version = '0.1'
 setup(
     name='django-rules',
     version=version,
-    description="Flexible Django per object authorization backend",
+    description="Flexible per-object authorization backend for Django",
     long_description=read('README.textile'),
     classifiers=[
         "Programming Language :: Python",
