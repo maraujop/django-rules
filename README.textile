@@ -367,6 +367,7 @@ Finally, the application comes geared with many different exceptions that will m
 
 
 h3. Testing django-rules
+
 To run tests, get into tests directory and execute:
 
 <pre>
