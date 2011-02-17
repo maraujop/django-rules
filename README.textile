@@ -322,7 +322,7 @@ django-rules has a central authorization dispatcher that is aimed towards a very
 
 To set up centralized permissions, you will need to set in your project settings the variable <code>CENTRAL_AUTHORIZATIONS</code> pointing to a module. Within that module, you will have to define a a boolean-returning function named <code>central_authorizations</code> accepting exactly two parameters:
 * <code>user_obj</code>: the user object.
-* <code>codename</code>: the codename of the rule we will be overriding. It is very useful to refine the permissions of a special user "a la ACL".
+* <code>codename</code>: the codename of the rule we will be overriden. It is very useful to refine the permissions of a special user "a la ACL".
 Note that, although the naming of the parameters doesn't really matter, the order does. The first parameter will receive a user object, and the second parameter, the codename of the rule.
 
 This <code>central_authorizations()</code> function will be called *before* any other rule, so you can override all of them here.
@@ -349,8 +349,7 @@ def central_authorizations(user_obj, codename):
 
     if user_obj.get_profile().isUberAdmin():
         isAuthorized = True
-    elif user_obj.get_profile().isUserSupport() and \
-         codename in ['can_see_full_profile', 'can_delete_item']:
+    elif user_obj.get_profile().isUserSupport() and codename in ['can_see_full_profile', 'can_delete_item']:
         isAuthorized = True
 
     return isAuthorized
