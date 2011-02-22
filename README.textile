@@ -230,7 +230,7 @@ Finally, you need to be aware of something very important: a method assigned to 
 You may be thinking that you can control this but, trust me, it will get very difficult to maintain and scale. Things will not always be that simple, maybe you will end up calling a method that is later modified and ends up calling a helper function that triggers the same authorization loop. Yeah, I know. Indirection is a bitch :) Or, in other words "Great power comes with great responsibility". So beware of the infinite loop ;)
 
 
-h3(#decorators). Decorators
+h2(#decorators). Decorators
 
 If you like Python as much as I do, you will love decorators. Django has a <code>permission_required</code> decorator, so it felt natural that django-rules implemented an <code>object_permission_required</code> decorator.
 
@@ -316,7 +316,7 @@ def _ship_item(request, id)
     return HttpResponse('success')
 </pre>
 
-h3. Centralized Permissions
+h2(#centralizedpermissions). Centralized Permissions
 
 django-rules has a central authorization dispatcher that is aimed towards a very common need in real life projects: the special, privileged groups such as administrators, user-support staff, etc., that have permissions to override certain aspects of the authorization constraints in the application. For such cases, django-rules has a way to let you bypass its authorization system for whatever reasons you have.
 
