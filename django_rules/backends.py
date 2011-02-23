@@ -16,6 +16,7 @@ from exceptions import RulesError
 class ObjectPermissionBackend(object):
     supports_object_permissions = True
     supports_anonymous_user = True
+    supports_inactive_user = True
 
     def authenticate(self, username, password):
         return None
