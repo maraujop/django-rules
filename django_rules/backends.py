@@ -71,8 +71,7 @@ class ObjectPermissionBackend(object):
         try:
             rule = RulePermission.objects.get(codename = perm, content_type = ctype)
         except RulePermission.DoesNotExist:
-            raise NonexistentPermission('RulePermission with codename %s on model %s does not exist',
-                                        (perm, ctype.model))
+            return False
 
         bound_field = None
         try:

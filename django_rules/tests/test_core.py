@@ -63,7 +63,7 @@ class BackendTest(TestCase):
         self.assertFalse(self.not_active_superuser.has_perm('can_ship', self.obj))
 
     def test_nonexistent_perm(self):
-        self.assertRaises(NonexistentPermission, lambda:self.user.has_perm('nonexistent_perm', self.obj))
+        self.assertFalse(self.user.has_perm('nonexistent_perm', self.obj))
 
     def test_nonboolean_attribute(self):
         RulePermission.objects.get_or_create(codename='wrong_rule', field_name='name', content_type=self.ctype, view_param_pk='idDummy',
