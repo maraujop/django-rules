@@ -41,19 +41,19 @@ For django-rules to work, you have to hook it into your project:
 * Add it to the list of <code>INSTALLED_APPS</code> in <code>settings.py</code>:
 
 <pre>
-INSTALLED_APPS = {
+INSTALLED_APPS = (
     ...
     'django_rules',
-}
+)
 </pre>
 
 * Add the django-rules authorization backend to the list of <code>AUTHENTICATION_BACKENDS</code> in <code>settings.py</code>:
 
 <pre>
-AUTHENTICATION_BACKENDS = {
+AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend', # Django's default auth backend
     'django_rules.backends.ObjectPermissionBackend',
-}
+)
 </pre>
 
 * Run syncdb to update the database with the new django-rules models:
