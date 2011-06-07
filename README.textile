@@ -25,6 +25,7 @@ django-rules requires a proper installation of Django 1.2 (at least).
 h2(#installation). Installation
 
 h3(#pypi). From Pypi
+
 As simple as doing:
 
 <pre>
