@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 import os
+import sys
+reload(sys).setdefaultencoding("UTF-8")
 from setuptools import setup, find_packages
 from distutils.core import setup
+
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
