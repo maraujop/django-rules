@@ -24,10 +24,18 @@ django-rules requires a proper installation of Django 1.2 (at least).
 
 h2(#installation). Installation
 
-To install django-rules, "download the source code from GitHub":https://github.com/maraujop/django-rules/, change directory to the base project dir and run the setup with install:
+h3(#pypi). From Pypi
+As simple as doing:
 
 <pre>
-cd /tmp
+pip install django-rules
+</pre>
+
+h3(#source). From source
+
+To install django-rules from source:
+
+<pre>
 git clone https://github.com/maraujop/django-rules/
 cd django-rules
 python setup.py install
