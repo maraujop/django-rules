@@ -1,0 +1,15 @@
+============
+Contributors
+============
+
+django-rules Project Lead
+=========================
+
+* Miguel Araujo <miguel.araujo.perez@gmail.com>
+
+Contributors
+===========
+
+* J. Javier Maestro <jjmaestro>
+* Chris Glass <chrisglass>
+* Mikołaj Siedlarek <mikoskay>
