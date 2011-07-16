@@ -9,10 +9,10 @@ h2(#philosophy). Philosophy
 
 django-rules strives to build a flexible and scalable authorization backend. Why is it better than other authorization backends out there?
 * The backend is simple, concise and compact. Less lines of code mean less complexity, faster execution and (hopefully :) less errors and bugs.
-* You can implement each authorization constraint as a boolean attribute, property or method of the model, whichever you prefer for each rule :) This way you will be able to re-implement how authorizations work at any time. It is dynamic and you know dynamic sounds way better than static :)
+* You can implement each authorization constraint as a boolean attribute, property or method of the model, whichever you prefer for each rule. This way you will be able to re-implement how authorizations work at any time. It is dynamic and you know dynamic sounds way better than static :)
 * You don't have to add extra permissions or groups to your users. You simply program the constraints however you like them to be and then you assign them to the rules. Done!
 * You have fine granularity control over how the rules handle the authentication: one rule can be using an authorization constraint that uses LDAP while other rules call a web service (or anything you wish to hook in the authorization constraint).
-* Other per-object authorization backends create a row in a table for every object, every user and every permission combination. Even with an average-size site, you will have scalability nightmares, no matter how much you can cache.
+* Other per-object authorization backends create a row in a table for every combination of object, user and permission. Even with an average-size site, you will have scalability nightmares, no matter how much you cache.
 * Other authorization backends have to SELECT all permissions that a user has even if you only need to check one specific permission, making the memory footprint bigger.
 * Other authorization backends don't have a way to set centralized permissions, which are a real necessity in most projects out there.
 
@@ -80,8 +80,8 @@ Every rule definition is composed of 6 parameters (3 compulsory and 3 optional):
 * <code>codename</code>: The name of the rule, _unique across all applications_. It should be a brief but distinctive name.
 * <code>model</code>: The name of the model associated with the rule.
 
-* <code>field_name</code> _(optional)_: The name of the boolean attribute, property or method of the model that implements the authorization constraint. If not set, it defaults to the value of the compulsory field <code>codename</code>.
-* <code>view_param_pk</code> _(optional)_: The view parameter's name to use for getting the primary key of the model. It is used in the decorated views for getting the actual instance of the model, the object where authorizations will be checked on. If not set, it defaults to the name of the primary key field in the model. Note that if the name of the parameter of the view that holds the value of the object's primary key doesn't match the name of the primary key of the model, the new name must be specified in this parameter (we will talk about this special case in "the section on Decorators":#decorators).
+* <code>field_name</code> _(optional)_: The name of the boolean attribute, property or method of the model that implements the authorization constraint. If not set, it defaults to the <code>codename</code> (that is, it will look for a field named exactly like the rule).
+* <code>view_param_pk</code> _(optional)_: The view parameter's name to use for getting the primary key of the model. It is used in the decorated views for getting the actual instance of the model, that is, the object against which the authorizations will be checked. If not set, it defaults to the name of the primary key field in the model. Note that if the name of the parameter of the view that holds the value of the object's primary key doesn't match the name of the primary key of the model, the new name must be specified in this parameter (we will talk about this special case in "the section on Decorators":#decorators).
 * <code>description</code> _(optional)_: A brief (140 characters maximum) description explaining the expected behaviour of the authorization constraint. Although optional, it is considered a Good Practice ^TM^ and should always be used.
 
 The rules should be created per-Django application. That is, under the root directory of the Django-application in which you want to create rules, you should have a <code>rules.py</code> containing only the declarations of those rules specific to that Django-application.
@@ -105,6 +105,9 @@ h3(#ex1). Example 1: Creating a simple, compact rule for the Item model in the '
 Let's image that, within the <code>shipping</code> Django-application, I have the following <code>models.py</code>:
 
 <pre>
+from django.db import models
+from django.contrib.auth.models import User
+
 class Item(models.Model):
     supplier = models.ForeignKey(User)
     description = models.CharField(max_length = 50)
@@ -115,6 +118,9 @@ Then, imagine that the business logic in our application has a functional author
 First, let's start by adding an authorization constraint to the Item model. Remember that we can use a method, a boolean attribute or a boolean-returning property. This time we will be using a method:
 
 <pre>
+from django.db import models
+from django.contrib.auth.models import User
+
 class Item(models.Model):
     supplier = models.ForeignKey(User)
     description = models.CharField(max_length = 50)
@@ -157,6 +163,9 @@ h3(#ex2). Example 2: Creating a rule that doesn't follow the naming conventions
 Imagine that we would like to name our authorization constraints however we want. For example, let's change the previous Item model:
 
 <pre>
+from django.db import models
+from django.contrib.auth.models import User
+
 class Item(models.Model):
     supplier = models.ForeignKey(User)
     description = models.CharField(max_length = 50)
@@ -230,7 +239,7 @@ Here is how all the pieces of the puzzle come together:
 
 h3. Details of using model methods in rules
 
-As we have seen, django-rules will check whether <code>field_name</code> is an attribute, a property or a method, and will act accordingly. You can create rules based on model's attributes and properties, which are more than fine for very simple cases but most of the time you will be setting <code>field_name</code> to a method in the model.
+As we have seen, django-rules will check whether <code>field_name</code> is an attribute, a property or a method, and will act accordingly. That is, for the very simple cases, you can create rules based on the attributes and properties of a model. But in real life applications most of the time you will probably be setting <code>field_name</code> to a method in the model.
 
 It is important to note that this method is limited to having just one parameter (a user object) or no parameters at all. It cannot receive multiple arguments or an argument that is not an instance of User. Although this might seem like a limitation, we could not think of a use case where the rest of the information needed coudn't be retrieved from the user or the model object. If you get into a situation where this is limiting you, please get in touch and explain your problem so that we can think of how to get around it! :)
 
