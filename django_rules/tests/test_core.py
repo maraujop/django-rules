@@ -152,6 +152,8 @@ class UtilsTest(TestCase):
         rules_list = [
             # Dummy model
             {'codename':'can_ship', 'model':'Dummy', 'field_name':'canShip', 'view_param_pk':'idView', 'description':"Only supplier has the authorization to ship"},
+            # same rule (shared rule) in two Models. Note that the rule can do different things depending on the model
+            {'codename':'shared_rule', 'model':['Dummy', 'Dummy2'], 'field_name':'sharedRule', 'view_param_pk':'idView', 'description':"Only supplier has the authorization to ship"},
         ]
 
         try:

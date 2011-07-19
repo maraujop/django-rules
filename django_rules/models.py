@@ -12,12 +12,14 @@ class RulePermission(models.Model):
     """
     This model holds the rules for the authorization system
     """
-    codename = models.CharField(primary_key=True, max_length=30)
-    field_name = models.CharField(max_length=30)
+    codename = models.CharField(max_length=30)
     content_type = models.ForeignKey(ContentType)
+    field_name = models.CharField(max_length=30)
     view_param_pk = models.CharField(max_length=30)
     description = models.CharField(max_length=140, null=True)
 
+    class Meta:
+        unique_together = ('codename', 'content_type')
 
     def save(self, *args, **kwargs):
         """
