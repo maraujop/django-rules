@@ -164,7 +164,7 @@ h3(#ex2). Example 2: Sharing the <code>codename</code> of a rule in multiple mod
 
 Imagine we want two (or more) models to have a rule with the same <code>codename</code> and we want to be able to conveniently write the rule in the application's <code>rules.py</code> file.
 
-For example, let's image that we extend "Example 1":#ex1 with another model that also implements the <code>can_ship</code>:
+For example, let's image that we extend "Example 1":#ex1 with another model that also implements a <code>can_ship</code> rule:
 
 <pre>
 from django.db import models
@@ -201,6 +201,7 @@ rules_list = [
 </pre>
 
 Note that django-rules also offers a compact way of writing this as a one-liner:
+
 <pre>
 rules_list = [
     {'codename':'can_ship', 'model':['Item', 'Postcard']},
