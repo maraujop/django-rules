@@ -77,8 +77,10 @@ A rule represents a functional authorization constraint that restricts the actio
 
 Every rule definition is composed of 6 parameters (3 compulsory and 3 optional):
 * <code>app_name</code>: The name of the app to which the rule applies.
-* <code>codename</code>: The name of the rule, _unique across all applications_. It should be a brief but distinctive name.
-* <code>model</code>: The name of the model associated with the rule.
+* <code>codename</code>: The name of the rule. It should be a brief but distinctive name.
+* <code>model</code>: The name of the model or the list of names of the models associated with the rule.
+
+Note that the (<code>codename</code>, <code>model</code>) tuple (or the tuples in case <code>model</code> is a list of model names) will be unique.
 
 * <code>field_name</code> _(optional)_: The name of the boolean attribute, property or method of the model that implements the authorization constraint. If not set, it defaults to the <code>codename</code> (that is, it will look for a field named exactly like the rule).
 * <code>view_param_pk</code> _(optional)_: The view parameter's name to use for getting the primary key of the model. It is used in the decorated views for getting the actual instance of the model, that is, the object against which the authorizations will be checked. If not set, it defaults to the name of the primary key field in the model. Note that if the name of the parameter of the view that holds the value of the object's primary key doesn't match the name of the primary key of the model, the new name must be specified in this parameter (we will talk about this special case in "the section on Decorators":#decorators).
@@ -158,7 +160,55 @@ python manage.py sync_rules
 </pre>
 
 
-h3(#ex2). Example 2: Creating a rule that doesn't follow the naming conventions
+h3(#ex2). Example 2: Sharing the <code>codename</code> of a rule in multiple models
+
+Imagine we want two (or more) models to have a rule with the same <code>codename</code> and we want to be able to conveniently write the rule in the application's <code>rules.py</code> file.
+
+For example, let's image that we extend "Example 1":#ex1 with another model that also implements the <code>can_ship</code>:
+
+<pre>
+from django.db import models
+from django.contrib.auth.models import User
+
+class Item(models.Model):
+    supplier = models.ForeignKey(User)
+    description = models.CharField(max_length = 50)
+
+    def can_ship(self, user_obj):
+        """
+        Checks if the given user_obj is the supplier of the item
+        """
+        return self.supplier == user_obj
+
+class Postcard(models.Model):
+    supplier = models.ForeignKey(User)
+    description = models.CharField(max_length = 50)
+
+    def can_ship(self, user_obj):
+        """
+        Everybody can send a postcard :)
+        """
+        return True
+</pre>
+
+Then, the <code>rules_list</code> in the application's <code>rules.py</code> file will look like:
+
+<pre>
+rules_list = [
+    {'codename':'can_ship', 'model':'Item'},
+    {'codename':'can_ship', 'model':'Postcard'},
+]
+</pre>
+
+Note that django-rules also offers a compact way of writing this as a one-liner:
+<pre>
+rules_list = [
+    {'codename':'can_ship', 'model':['Item', 'Postcard']},
+]
+</pre>
+
+
+h3(#ex2). Example 3: Creating a rule that doesn't follow the naming conventions
 
 Imagine that we would like to name our authorization constraints however we want. For example, let's change the previous Item model:
 
