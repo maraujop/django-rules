@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
+
+
 import os
 import sys
-reload(sys).setdefaultencoding("UTF-8")
+
+reload(sys).setdefaultencoding('UTF-8')
+
 from setuptools import setup, find_packages
 from distutils.core import setup
 
@@ -14,16 +18,16 @@ version = '0.2'
 setup(
     name='django-rules',
     version=version,
-    description="Flexible per-object authorization backend for Django",
+    description='Flexible per-object authorization backend for Django',
     long_description=read('README.textile'),
     classifiers=[
-        "Programming Language :: Python",
-        "Topic :: Software Development :: Libraries :: Python Modules",
+        'Programming Language :: Python',
+        'Topic :: Software Development :: Libraries :: Python Modules',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
-        "Framework :: Django",
-        "Environment :: Web Environment",
+        'Framework :: Django',
+        'Environment :: Web Environment',
     ],
     keywords=['authorization', 'backends', 'django', 'rules', 'permissions'],
     author='Miguel Araujo',

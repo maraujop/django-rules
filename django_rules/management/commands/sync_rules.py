@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-import sys, os
+
+
+import os
+import sys
 import imp
 from optparse import make_option
 
@@ -18,9 +21,9 @@ def import_app(app_label, verbosity):
         return
     except ImportError:
         print "Unknown application: %s" % app_label
-        print "Stopping synchronization"
+        print 'Stopping synchronization'
         sys.exit(1)
-   
+
     # imp.find_module looks for rules.py within the app
     # It does not import the module, but raises and ImportError
     # if rules.py does not exist, so we continue to next app
@@ -31,7 +34,7 @@ def import_app(app_label, verbosity):
 
     if verbosity >= 1:
         sys.stderr.write('Syncing rules from %s\n' % app_label)
-    
+
     # Now we import the module, this should bubble up errors
     # if there are any in rules.py Warning the user
     generator = import_module('.rules', app_label)
@@ -39,8 +42,8 @@ def import_app(app_label, verbosity):
 
 class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
-        make_option("--fixture", action='store_true', dest="fixture", default=False,
-                   help="Generate a fixture of django_rules"),
+        make_option('--fixture', action='store_true', dest='fixture', default=False,
+                   help='Generate a fixture of django_rules'),
     )
     help = 'Syncs into database all rules defined in rules.py files'
     args = '[appname ...]'
@@ -60,6 +63,6 @@ class Command(BaseCommand):
 
         if fixture:
             for alias in connections._connections:
-                call_command("dumpdata",
+                call_command('dumpdata',
                          'django_rules.rulepermission',
                         **dict(options, verbosity=0, database=alias))

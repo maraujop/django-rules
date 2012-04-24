@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+
+
 from django.shortcuts import get_object_or_404
 from django.utils.http import urlquote
 from django.conf import settings
@@ -40,31 +42,31 @@ def object_permission_required(perm, **kwargs):
     """
 
     login_url = kwargs.pop('login_url', settings.LOGIN_URL)
-    redirect_url = kwargs.pop('redirect_url', "")
+    redirect_url = kwargs.pop('redirect_url', '')
     redirect_field_name = kwargs.pop('redirect_field_name', REDIRECT_FIELD_NAME)
     return_403 = kwargs.pop('return_403', False)
 
     # Check if perm is given as string in order to not decorate
     # view function itself which makes debugging harder
     if not isinstance(perm, basestring):
-        raise RulesError("First argument, permission, must be a string")
+        raise RulesError('First argument, permission, must be a string')
 
     def decorator(view_func):
         def _wrapped_view(request, *args, **kwargs):
             obj = None
-            
+
             try:
-                rule = RulePermission.objects.get(codename = perm)
+                rule = RulePermission.objects.get(codename=perm)
             except RulePermission.DoesNotExist:
                 raise NonexistentPermission("Permission %s does not exist" % perm)
 
             # Only look in kwargs, if the views are entry points through urls Django passes parameters as kwargs
-            # We could look in args using  inspect.getcallargs in Python 2.7 or a custom function that 
-            # imitates it, but if the view is internal, I think it's better to force the user to pass 
+            # We could look in args using  inspect.getcallargs in Python 2.7 or a custom function that
+            # imitates it, but if the view is internal, I think it's better to force the user to pass
             # parameters as kwargs
-            if rule.view_param_pk not in kwargs: 
+            if rule.view_param_pk not in kwargs:
                 raise RulesError("The view does not have a parameter called %s in kwargs" % rule.view_param_pk)
-                
+
             model_class = rule.content_type.model_class()
             obj = get_object_or_404(model_class, pk=kwargs[rule.view_param_pk])
 

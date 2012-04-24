@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+
+
 import inspect
+
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
@@ -49,5 +52,5 @@ class RulePermission(models.Model):
                 if len(inspect.getargspec(bound_field)[0]) > 2:
                     raise RulesError("method %s from rule %s in model %s has too many parameters." %
                                         (self.field_name, self.codename, self.content_type.model))
-        
+
         super(RulePermission, self).save(*args, **kwargs)

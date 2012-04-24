@@ -1,4 +1,8 @@
+# -*- coding: utf-8 -*-
+
+
 import os
+
 
 BASE_DIR = os.path.dirname(__file__)
 
@@ -9,7 +13,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django_rules',
     'django_rules.tests',
-    )
+)
 
 DATABASES = {
     'default': {

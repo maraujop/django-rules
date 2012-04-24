@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
+
+
 from django.db import models
 from django.contrib.auth.models import User
+
 
 class Dummy(models.Model):
     """
     Dummy model for testing permissions
     """
-    idDummy = models.AutoField(primary_key = True)
-    supplier = models.ForeignKey(User, null = False)
-    name = models.CharField(max_length = 20, null = True)
+    idDummy = models.AutoField(primary_key=True)
+    supplier = models.ForeignKey(User, null=False)
+    name = models.CharField(max_length=20, null=True)
 
-    def canShip(self,user_obj):
+    def canShip(self, user_obj):
         """
         Only the supplier can_ship in our business logic.
         Checks if the user_obj passed is the supplier.
@@ -20,7 +23,7 @@ class Dummy(models.Model):
     @property
     def isDisposable(self):
         """
-        It should check some attributes to see if 
+        It should check some attributes to see if
         package is disposable
         """
         return True
@@ -44,7 +47,7 @@ class Dummy(models.Model):
         """
         pass
 
-    def sharedRule(self,user_obj):
+    def sharedRule(self, user_obj):
         """
         This rule is shared between both dummy Models.
         It's used to test the definition of a common
@@ -52,15 +55,16 @@ class Dummy(models.Model):
         """
         return True
 
+
 class Dummy2(models.Model):
     """
     Dummy model for testing permissions
     """
-    idDummy = models.AutoField(primary_key = True)
-    supplier = models.ForeignKey(User, null = False)
-    name = models.CharField(max_length = 20, null = True)
+    idDummy = models.AutoField(primary_key=True)
+    supplier = models.ForeignKey(User, null=False)
+    name = models.CharField(max_length=20, null=True)
 
-    def sharedRule(self,user_obj):
+    def sharedRule(self, user_obj):
         """
         This rule is shared between both dummy Models.
         It's used to test the definition of a common
