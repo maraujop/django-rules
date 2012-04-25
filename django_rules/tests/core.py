@@ -1,15 +1,20 @@
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
+import os
+import sys
+from cStringIO import StringIO
+
 from django.test import TestCase
 from django.contrib.auth.models import User, AnonymousUser
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
+from django_rules.exceptions import (
+    NonexistentFieldName,
+    NotBooleanPermission,
+    RulesError,
+)
+from django_rules.mem_store import register
 
 from models import Dummy
-from django_rules.exceptions import NonexistentFieldName
-from django_rules.exceptions import NotBooleanPermission
-from django_rules.exceptions import RulesError
-
-from django_rules.mem_store import register
 
 
 class BackendTest(TestCase):
@@ -24,34 +29,34 @@ class BackendTest(TestCase):
         self.obj = Dummy.objects.get_or_create(supplier=self.user)[0]
         
         # Rule
+        sys.stderr = open(os.devnull, 'w')  # silencing the "overwriting" warning
         register(codename='can_ship', field_name='canShip', ModelType=Dummy, view_param_pk='idDummy',
                                             description="Only supplier have the authorization to ship")
+        sys.stderr = sys.__stderr__
 
-    
     def test_regularuser_has_perm(self):
         self.assertTrue(self.user.has_perm('can_ship', self.obj))
-    
+
     def test_regularuser_has_not_perm(self):
         self.assertFalse(self.otherUser.has_perm('can_ship', self.obj))
-    
+
     def test_regularuser_has_property_perm(self):
         """
         Checks that the backend can work with properties
         """
         register(codename='can_trash', field_name='isDisposable', ModelType=Dummy, view_param_pk='idDummy',
                                             description="Checks if a user can trash a package")
-
         try:
             self.user.has_perm('can_trash', self.obj)
         except:
             self.fail("Something when wrong when checking a property rule")
-        
+
     def test_superuser_has_perm(self):
         self.assertTrue(self.superuser.has_perm('invented_perm', self.obj))
 
     def test_object_none(self):
         self.assertFalse(self.user.has_perm('can_ship'))
-    
+
     def test_anonymous_user(self):
         anonymous_user = AnonymousUser()
         self.assertFalse(anonymous_user.has_perm('can_ship', self.obj))
@@ -78,7 +83,7 @@ class BackendTest(TestCase):
         # Dinamycally removing canShip from class Dummy to test an already existent rule that doesn't have a valid field_name anymore
         fun = Dummy.canShip
         del Dummy.canShip
-        self.assertRaises(NonexistentFieldName, lambda:self.user.has_perm('can_ship', self.obj))
+        self.assertRaises(NonexistentFieldName, lambda: self.user.has_perm('can_ship', self.obj))
         Dummy.canShip = fun
 
     def test_has_perm_method_no_parameters(self):
@@ -99,17 +104,17 @@ class BackendTest(TestCase):
 
     def test_central_authorizations_wrong_module(self):
         settings.CENTRAL_AUTHORIZATIONS = 'noexistent'
-        self.assertRaises(RulesError, lambda:self.user.has_perm('can_ship', self.obj))
+        self.assertRaises(RulesError, lambda: self.user.has_perm('can_ship', self.obj))
         del settings.CENTRAL_AUTHORIZATIONS
 
     def test_central_authorizations_right_module_nonexistent_function(self):
         settings.CENTRAL_AUTHORIZATIONS = 'utils2'
-        self.assertRaises(RulesError, lambda:self.user.has_perm('can_ship', self.obj))
+        self.assertRaises(RulesError, lambda: self.user.has_perm('can_ship', self.obj))
         del settings.CENTRAL_AUTHORIZATIONS
 
     def test_central_authorizations_right_module_wrong_number_parameters(self):
         settings.CENTRAL_AUTHORIZATIONS = 'utils3'
-        self.assertRaises(RulesError, lambda:self.user.has_perm('can_ship', self.obj))
+        self.assertRaises(RulesError, lambda: self.user.has_perm('can_ship', self.obj))
         del settings.CENTRAL_AUTHORIZATIONS
 
 
@@ -162,3 +167,11 @@ class UtilsTest(TestCase):
             register(codename='canShip', ModelType=Dummy)
         except:
             self.fail("test_register_valid_rules_compact_style failed")
+
+    def test_override_already_registered_rule(self):
+        register(codename='canShip', ModelType=Dummy)
+        sys.stderr = stderr = StringIO()  # let's capture the warning
+        register(codename='canShip', ModelType=Dummy)
+        sys.stderr = sys.__stderr__
+
+        self.assertTrue((True if "being overwritten" in stderr.getvalue() else False))

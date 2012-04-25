@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+
+
 import inspect
 
 from django.conf import settings
@@ -6,8 +8,9 @@ from django.utils.importlib import import_module
 
 from django_rules import mem_store
 from exceptions import (
-    NotBooleanPermission, NonexistentFieldName,
-    RulesError
+    NotBooleanPermission,
+    NonexistentFieldName,
+    RulesError,
 )
 
 
@@ -16,7 +19,7 @@ class ObjectPermissionBackend(object):
     supports_anonymous_user = True
     supports_inactive_user = True
 
-    def authenticate(self, username, password):
+    def authenticate(self, username, password):  # pragma: no cover
         return None
 
     def has_perm(self, user_obj, perm, obj=None):
@@ -42,11 +45,11 @@ class ObjectPermissionBackend(object):
             try:
                 central_authorizations = getattr(mod, 'central_authorizations')
             except AttributeError:
-                raise RulesError('Error module %s does not have a central_authorization function"' % (module))
-            
+                raise RulesError("Error module %s does not have a central_authorization function" % (module))
+
             try:
                 is_authorized = central_authorizations(user_obj, perm)
-                # If the value returned is a boolean we pass it up and stop checking 
+                # If the value returned is a boolean we pass it up and stop checking
                 # If not, we continue checking
                 if isinstance(is_authorized, bool):
                     return is_authorized

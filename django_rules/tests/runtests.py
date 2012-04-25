@@ -1,6 +1,9 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-import os, sys
+
+import os
+import sys
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'test_settings'
 parent = os.path.dirname(os.path.dirname(os.path.dirname(
@@ -9,6 +12,7 @@ parent = os.path.dirname(os.path.dirname(os.path.dirname(
 sys.path.insert(0, parent)
 
 from django.test.simple import DjangoTestSuiteRunner
+
 
 
 def runtests():

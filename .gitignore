@@ -7,3 +7,5 @@
 /build
 /dist
 /django_rules.egg-info
+coverage.data
+*,cover

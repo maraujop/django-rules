@@ -1,4 +1,8 @@
+# -*- coding: utf-8 -*-
+
+
 import os
+
 
 BASE_DIR = os.path.dirname(__file__)
 
@@ -21,3 +25,5 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'django_rules.backends.ObjectPermissionBackend',
 )
+
+ROOT_URLCONF = 'test_urls'

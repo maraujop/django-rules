@@ -1,0 +1,13 @@
+# http://nedbatchelder.com/code/coverage/config.html
+
+[run]
+branch = True
+source = django_rules
+omit = django_rules/*tests*
+
+[paths]
+source = django_rules/
+
+[report]
+precision = 2
+ignore_errors = True

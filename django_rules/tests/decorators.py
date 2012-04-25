@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+
+
 from django.test import TestCase
 from django.contrib.auth.models import User, AnonymousUser
 from django.http import HttpRequest, HttpResponse, Http404, HttpResponseRedirect
@@ -7,6 +9,7 @@ from django_rules.exceptions import RulesError, NonexistentPermission
 from django_rules.decorators import object_permission_required
 from django_rules.mem_store import register
 from .models import Dummy
+
 
 
 class DecoratorsTest(TestCase):
@@ -33,7 +36,7 @@ class DecoratorsTest(TestCase):
         @object_permission_required(**dicc)
         def dummy_view(request, idView):
             return HttpResponse('success')
-        
+
         request = self._get_request(user_obj)
         return dummy_view(request, idView=value)
 
@@ -62,3 +65,13 @@ class DecoratorsTest(TestCase):
 
     def test_view_param_pk_not_match_param_in_view(self):
         self.assertRaises(RulesError, lambda: self._dummy_view(self.user, {'ModelType': Dummy, 'codename': 'can_supply'}, self.obj.pk))
+
+    def test_redirect_url_reverse_match(self):
+        response = self._dummy_view(self.otheruser, {'ModelType': Dummy, 'codename': 'can_ship', 'redirect_url': 'home'}, self.obj.pk)
+        self.assertTrue(isinstance(response, HttpResponseRedirect))
+        self.assertTrue(response._headers['location'][1].startswith('/'))
+
+    def test_redirect_url_no_reverse_match(self):
+        response = self._dummy_view(self.otheruser, {'ModelType': Dummy, 'codename': 'can_ship', 'redirect_url': '/foo/bar/'}, self.obj.pk)
+        self.assertTrue(isinstance(response, HttpResponseRedirect))
+        self.assertTrue(response._headers['location'][1].startswith('/foo/bar/'))
