@@ -3,7 +3,7 @@
 [run]
 branch = True
 source = django_rules
-omit = django_rules/*tests*
+omit = ./*.py
 
 [paths]
 source = django_rules/
