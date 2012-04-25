@@ -1,20 +1,18 @@
 # -*- coding: utf-8 -*-
 
 
-from django.shortcuts import get_object_or_404
-from django.utils.http import urlquote
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
-from django.utils.functional import wraps
 from django.shortcuts import get_object_or_404
+from django.utils.functional import wraps
+from django.utils.http import urlquote
 from django.core.urlresolvers import NoReverseMatch, reverse
 
 from exceptions import RulesError
 from exceptions import NonexistentPermission
 from models import RulePermission
-from backends import ObjectPermissionBackend
 
 
 def object_permission_required(perm, **kwargs):

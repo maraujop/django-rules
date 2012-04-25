@@ -5,14 +5,13 @@ import inspect
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.auth.models import User, AnonymousUser
+from django.contrib.auth.models import User
 from django.utils.importlib import import_module
 
 from models import RulePermission
 from exceptions import (
     NotBooleanPermission,
     NonexistentFieldName,
-    NonexistentPermission,
     RulesError,
 )
 
