@@ -11,6 +11,7 @@ from exceptions import RulesError
 
 _mem_store = defaultdict(dict)
 
+
 def get(perm, model):
     return _mem_store.get(model, {}).get(perm, None)
 
@@ -55,8 +56,8 @@ def register(codename, ModelType, field_name=None, view_param_pk=None, descripti
     if callable(bound_field):
         if len(inspect.getargspec(bound_field)[0]) > 2:
             raise RulesError("method %s from rule %s in model %s has too many parameters." % (
-                field_name, 
-                codename, 
+                field_name,
+                codename,
                 str(ModelType)
             ))
 
@@ -66,10 +67,10 @@ def register(codename, ModelType, field_name=None, view_param_pk=None, descripti
 
     _mem_store[ModelType].update({
         codename: RulePermission(
-            codename, 
-            ModelType, 
-            field_name, 
-            view_param_pk, 
+            codename,
+            ModelType,
+            field_name,
+            view_param_pk,
             description
         )
     })

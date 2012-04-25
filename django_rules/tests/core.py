@@ -27,7 +27,7 @@ class BackendTest(TestCase):
 
         # Object
         self.obj = Dummy.objects.get_or_create(supplier=self.user, name='dummy')[0]
-        
+
         # Rule
         sys.stderr = open(os.devnull, 'w')  # silencing the "overwriting" warning
         register(codename='can_ship', field_name='canShip', ModelType=Dummy, view_param_pk='idDummy',
@@ -70,15 +70,15 @@ class BackendTest(TestCase):
     def test_nonboolean_attribute(self):
         register(codename='wrong_rule', field_name='name', ModelType=Dummy, view_param_pk='idDummy',
                                             description="Wrong rule. The field_name exists so It is created, but it does not return True or False")
-        
-        self.assertRaises(NotBooleanPermission, lambda:self.user.has_perm('wrong_rule', self.obj))
+
+        self.assertRaises(NotBooleanPermission, lambda: self.user.has_perm('wrong_rule', self.obj))
 
     def test_nonboolean_method(self):
         register(codename='wrong_rule', field_name='methodInteger', ModelType=Dummy, view_param_pk='idDummy',
                                             description="Wrong rule. The field_name exists so It is created, but it does not return True or False")
-        
-        self.assertRaises(NotBooleanPermission, lambda:self.user.has_perm('wrong_rule', self.obj))
-    
+
+        self.assertRaises(NotBooleanPermission, lambda: self.user.has_perm('wrong_rule', self.obj))
+
     def nonexistent_field_name(self):
         # Dinamycally removing canShip from class Dummy to test an already existent rule that doesn't have a valid field_name anymore
         fun = Dummy.canShip
@@ -125,9 +125,9 @@ class RulePermissionTest(TestCase):
         self.ctype = ContentType.objects.get_for_model(self.obj)
 
     def test_invalid_field_name(self):
-        self.assertRaises(NonexistentFieldName, lambda:register(codename='can_ship', field_name='invalidField', ModelType=Dummy, 
+        self.assertRaises(NonexistentFieldName, lambda: register(codename='can_ship', field_name='invalidField', ModelType=Dummy,
                                                                         view_param_pk='idDummy', description="Only supplier have the authorization to ship"))
- 
+
     def test_valid_attribute(self):
         try:
             register(codename='can_ship', field_name='supplier', ModelType=Dummy, view_param_pk='idDummy', description="Only supplier have the authorization to ship")
@@ -139,7 +139,7 @@ class RulePermissionTest(TestCase):
             register(codename='can_ship', field_name='canShip', ModelType=Dummy, view_param_pk='idDummy', description="Only supplier have the authorization to ship")
         except:
             self.fail('')
-    
+
     def test_method_no_parameters(self):
         try:
             register(codename='can_trash', field_name='canTrash', ModelType=Dummy, view_param_pk='idDummy', description="User can trash a package")
@@ -147,7 +147,7 @@ class RulePermissionTest(TestCase):
             self.fail('')
 
     def test_method_wrong_number_parameters(self):
-        self.assertRaises(RulesError, lambda:register(codename='can_trash', field_name='invalidNumberParameters', ModelType=Dummy, 
+        self.assertRaises(RulesError, lambda: register(codename='can_trash', field_name='invalidNumberParameters', ModelType=Dummy,
                                                                         view_param_pk='idDummy', description="Rule should not be created, too many parameters"))
 
 
@@ -159,7 +159,7 @@ class UtilsTest(TestCase):
             self.fail("test_register_valid_rules failed")
 
     def test_register_invalid_rules_NonexistentFieldName(self):
-        self.assertRaises(NonexistentFieldName, lambda: register(codename='can_ship', ModelType=Dummy, field_name='canSship', 
+        self.assertRaises(NonexistentFieldName, lambda: register(codename='can_ship', ModelType=Dummy, field_name='canSship',
             view_param_pk='idView', description="Only supplier has the authorization to ship"))
 
     def test_register_valid_rules_compact_style(self):

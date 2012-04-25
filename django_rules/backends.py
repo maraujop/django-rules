@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-
-
 import inspect
 
 from django.conf import settings
@@ -32,7 +30,7 @@ class ObjectPermissionBackend(object):
         if obj is None:
             return False
 
-        # Centralized authorizations: You need to define a module in settings.CENTRAL_AUTHORIZATIONS that has a 
+        # Centralized authorizations: You need to define a module in settings.CENTRAL_AUTHORIZATIONS that has a
         # central_authorizations function inside
         if hasattr(settings, 'CENTRAL_AUTHORIZATIONS'):
             module = getattr(settings, 'CENTRAL_AUTHORIZATIONS')

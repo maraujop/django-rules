@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-
 import os
 import sys
 
@@ -12,7 +10,6 @@ parent = os.path.dirname(os.path.dirname(os.path.dirname(
 sys.path.insert(0, parent)
 
 from django.test.simple import DjangoTestSuiteRunner
-
 
 
 def runtests():

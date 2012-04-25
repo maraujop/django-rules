@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-
-
 from django.test import TestCase
 from django.contrib.auth.models import User, AnonymousUser
 from django.http import HttpRequest, HttpResponse, Http404, HttpResponseRedirect
@@ -11,7 +9,6 @@ from django_rules.mem_store import register
 from .models import Dummy
 
 
-
 class DecoratorsTest(TestCase):
     def setUp(self):
         # Users
@@ -19,7 +16,7 @@ class DecoratorsTest(TestCase):
         self.otheruser = User.objects.get_or_create(username='miguel', is_active=True)[0]
 
         # Dummy object for checking rules
-        self.obj = Dummy.objects.get_or_create(idDummy=1,supplier=self.user)[0]
+        self.obj = Dummy.objects.get_or_create(idDummy=1, supplier=self.user)[0]
 
         register(codename='can_ship', field_name='canShip', ModelType=Dummy, view_param_pk='idView', description="Only supplier have the authorization to ship")
         register(codename='can_supply', field_name='canShip', ModelType=Dummy, view_param_pk='nonexistent_param',
@@ -55,8 +52,8 @@ class DecoratorsTest(TestCase):
         self.assertRaises(NonexistentPermission, lambda: self._dummy_view(self.user, {'ModelType': Dummy, 'codename': 'nonexistent_perm'}, self.obj.pk))
 
     def test_nonexistent_obj(self):
-        last=int(Dummy.objects.latest(field_name='pk').pk)
-        self.assertRaises(Http404, lambda: self._dummy_view(self.user, {'ModelType': Dummy, 'codename': 'can_ship'}, last+1))
+        last = int(Dummy.objects.latest(field_name='pk').pk)
+        self.assertRaises(Http404, lambda: self._dummy_view(self.user, {'ModelType': Dummy, 'codename': 'can_ship'}, last + 1))
 
     def test_without_permission_redirection(self):
         response = self._dummy_view(self.otheruser, {'ModelType': Dummy, 'codename': 'can_ship', 'login_url': '/foobar/'}, self.obj.pk)
