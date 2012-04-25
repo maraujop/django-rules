@@ -73,3 +73,13 @@ class DecoratorsTest(TestCase):
 
     def test_view_param_pk_not_match_param_in_view(self):
         self.assertRaises(RulesError, lambda: self._dummy_view(self.user, {'perm': 'can_supply'}, self.obj.pk))
+
+    def test_redirect_url_reverse_match(self):
+        response = self._dummy_view(self.otheruser, {'perm': 'can_ship', 'redirect_url': 'home'}, self.obj.pk)
+        self.assertTrue(isinstance(response, HttpResponseRedirect))
+        self.assertTrue(response._headers['location'][1].startswith('/'))
+
+    def test_redirect_url_no_reverse_match(self):
+        response = self._dummy_view(self.otheruser, {'perm': 'can_ship', 'redirect_url': '/foo/bar/'}, self.obj.pk)
+        self.assertTrue(isinstance(response, HttpResponseRedirect))
+        self.assertTrue(response._headers['location'][1].startswith('/foo/bar/'))

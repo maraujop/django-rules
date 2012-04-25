@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import os
+import sys
+from cStringIO import StringIO
 
 from django.test import TestCase
 from django.contrib.auth.models import User, AnonymousUser
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ValidationError
 from django.conf import settings
 
 from django_rules.models import RulePermission
@@ -12,7 +14,6 @@ from models import Dummy
 from django_rules.exceptions import (
     NonexistentFieldName,
     NotBooleanPermission,
-    NonexistentPermission,
     RulesError,
 )
 from django_rules import utils
@@ -155,9 +156,9 @@ class UtilsTest(TestCase):
     def test_register_valid_rules(self):
         rules_list = [
             # Dummy model
-            {'codename':'can_ship', 'model':'Dummy', 'field_name':'canShip', 'view_param_pk':'idView', 'description':'Only supplier has the authorization to ship'},
+            {'codename': 'can_ship', 'model': 'Dummy', 'field_name': 'canShip', 'view_param_pk': 'idView', 'description': 'Only supplier has the authorization to ship'},
             # same rule (shared rule) in two Models. Note that the rule can do different things depending on the model
-            {'codename':'shared_rule', 'model':['Dummy', 'Dummy2'], 'field_name':'sharedRule', 'view_param_pk':'idView', 'description':'Only supplier has the authorization to ship'},
+            {'codename': 'shared_rule', 'model':['Dummy', 'Dummy2'], 'field_name': 'sharedRule', 'view_param_pk': 'idView', 'description': 'Only supplier has the authorization to ship'},
         ]
 
         try:
@@ -169,16 +170,36 @@ class UtilsTest(TestCase):
     def test_register_invalid_rules_NonexistentFieldName(self):
         rules_list = [
             # Dummy model
-            {'codename':'can_ship', 'model':'Dummy', 'field_name':'canSship', 'view_param_pk':'idView', 'description':'Only supplier has the authorization to ship'},
+            {'codename': 'can_ship', 'model': 'Dummy', 'field_name': 'canSship', 'view_param_pk': 'idView', 'description': 'Only supplier has the authorization to ship'},
         ]
 
         for params in rules_list:
             self.assertRaises(NonexistentFieldName, lambda: utils.register(app_name='tests', **params))
 
+    def test_register_nonexistent_Model(self):
+        rule = {'codename': 'canShip', 'model': 'NonExistent'}
+
+        sys.stderr = stderr = StringIO()  # let's capture the warning
+        utils.register(app_name='tests', **rule)
+        sys.stderr = sys.__stderr__
+
+        self.assertTrue((True if 'will not be synced' in stderr.getvalue() else False))
+
+    def test_override_already_registered_rule(self):
+        rule = {'codename': 'can_ship', 'model': 'Dummy', 'field_name': 'canShip', 'view_param_pk': 'idView', 'description': 'Only supplier has the authorization to ship'}
+
+        try:
+            utils.register(app_name='tests', **rule)
+            sys.stderr = open(os.devnull, 'w')  # silencing the "overwriting" warning
+            utils.register(app_name='tests', **rule)
+            sys.stderr = sys.__stderr__
+        except Exception, e:
+            self.fail('test_override_already_registered_rule failed')
+
     def test_register_valid_rules_compact_style(self):
         rules_list = [
             # Dummy model
-            {'codename':'canShip', 'model':'Dummy'},
+            {'codename': 'canShip', 'model': 'Dummy'},
         ]
 
         try:
