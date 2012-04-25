@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from django.shortcuts import get_object_or_404
 from django.utils.http import urlquote
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
@@ -9,13 +8,12 @@ from django.utils.functional import wraps
 from django.shortcuts import get_object_or_404
 from django.core.urlresolvers import NoReverseMatch, reverse
 
-from exceptions import RulesError
-from exceptions import NonexistentPermission
-from models import RulePermission
-from backends import ObjectPermissionBackend
+from exceptions import RulesError, NonexistentPermission
+import mem_store
 
 
-def object_permission_required(perm, **kwargs):
+
+def object_permission_required(ModelType, codename, **kwargs):
     """
     Decorator for views that checks whether a user has a particular permission
 
@@ -32,31 +30,26 @@ def object_permission_required(perm, **kwargs):
 
     Examples::
 
-        # RulePermission.objects.get_or_create(codename='can_ship',...,view_param_pk='paramView')
-        @permission_required('can_ship', return_403=True)
+        # register(codename='can_ship',...,view_param_pk='paramView')
+        @permission_required(Dummy.can_ship, return_403=True)
         def my_view(request, paramView):
             return HttpResponse('Hello')
-
     """
-
     login_url = kwargs.pop('login_url', settings.LOGIN_URL)
     redirect_url = kwargs.pop('redirect_url', "")
     redirect_field_name = kwargs.pop('redirect_field_name', REDIRECT_FIELD_NAME)
     return_403 = kwargs.pop('return_403', False)
 
-    # Check if perm is given as string in order to not decorate
-    # view function itself which makes debugging harder
-    if not isinstance(perm, basestring):
-        raise RulesError("First argument, permission, must be a string")
+    # Check if codename is given as string in order to not decorate
+    # the view function itself which makes debugging harder
+    if not isinstance(codename, basestring):
+        raise RulesError("object_permission_required requires a string as second argument")
 
     def decorator(view_func):
         def _wrapped_view(request, *args, **kwargs):
-            obj = None
-            
-            try:
-                rule = RulePermission.objects.get(codename = perm)
-            except RulePermission.DoesNotExist:
-                raise NonexistentPermission("Permission %s does not exist" % perm)
+            rule = mem_store.get(codename, ModelType)
+            if rule is None:
+                raise NonexistentPermission("Permission %s does not exist" % codename)
 
             # Only look in kwargs, if the views are entry points through urls Django passes parameters as kwargs
             # We could look in args using  inspect.getcallargs in Python 2.7 or a custom function that 
@@ -65,10 +58,9 @@ def object_permission_required(perm, **kwargs):
             if rule.view_param_pk not in kwargs: 
                 raise RulesError("The view does not have a parameter called %s in kwargs" % rule.view_param_pk)
                 
-            model_class = rule.content_type.model_class()
-            obj = get_object_or_404(model_class, pk=kwargs[rule.view_param_pk])
+            obj = get_object_or_404(ModelType, pk=kwargs[rule.view_param_pk])
 
-            if not request.user.has_perm(perm, obj):
+            if not request.user.has_perm(codename, obj):
                 if return_403:
                     return HttpResponseForbidden()
                 else:
