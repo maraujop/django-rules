@@ -43,21 +43,12 @@ def register(codename, ModelType, field_name=None, view_param_pk=None, descripti
     view_param_pk = view_param_pk if view_param_pk is not None else ModelType._meta.pk.attname
 
     # we check if field_name is a property or method of the model
-    if not hasattr(ModelType, field_name):
-        try:
-            # Check if field_name is a field of the model, not a property or function
-            ModelType._meta.get_field_by_name(field_name)
-        except FieldDoesNotExist:
-            raise NonexistentFieldName("Could not create rule: field_name %s of rule %s does not exist in model %s" %
-                                    (field_name, codename, str(ModelType)))
-
-    # If field_name is a method, check if the method parameters are less than 2 including self in the count
     bound_field = getattr(ModelType, field_name, False)
-    
     if not bound_field:
         try:
-            ModelType._meta.get_field_by_name(field_name)[0]
-        except ModelType.DoesNotExist:
+            # Check if field_name is a field of the model, not a property or function
+            bound_field = ModelType._meta.get_field_by_name(field_name)[0]
+        except FieldDoesNotExist:
             raise NonexistentFieldName("Could not create rule: field_name %s of rule %s does not exist in model %s" %
                                     (field_name, codename, str(ModelType)))
 

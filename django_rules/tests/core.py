@@ -26,7 +26,7 @@ class BackendTest(TestCase):
         self.not_active_superuser = User.objects.get_or_create(username='rebeca', is_active=False, is_superuser=True)[0]
 
         # Object
-        self.obj = Dummy.objects.get_or_create(supplier=self.user)[0]
+        self.obj = Dummy.objects.get_or_create(supplier=self.user, name='dummy')[0]
         
         # Rule
         sys.stderr = open(os.devnull, 'w')  # silencing the "overwriting" warning

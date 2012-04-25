@@ -63,14 +63,9 @@ class ObjectPermissionBackend(object):
         if rule is None:
             return False
 
-        bound_field = None
-        try:
-            bound_field = getattr(obj, rule.field_name)
-        except AttributeError:
-            raise NonexistentFieldName("Field_name %s from rule %s does not longer exist in model %s. \
-                                        The rule is obsolete!", (rule.field_name, rule.codename, obj.__class__))
+        bound_field = getattr(obj, rule.field_name)
 
-        if not isinstance(bound_field, bool) and not callable(bound_field):
+        if not isinstance(bound_field, bool) and not callable(bound_field) and bound_field is not None:
             raise NotBooleanPermission("Attribute %s from model %s on rule %s does not return a boolean value",
                                         (rule.field_name, obj.__class__, rule.codename))
 
