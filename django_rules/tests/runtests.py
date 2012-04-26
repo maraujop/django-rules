@@ -17,7 +17,8 @@ def runtests():
         'django_rules.BackendTest',
         'django_rules.RulePermissionTest',
         'django_rules.UtilsTest',
-        'django_rules.DecoratorsTest'
+        'django_rules.DecoratorsTest',
+        'django_rules.TemplatetagsTest',
     ], verbosity=1, interactive=True)
 
 if __name__ == '__main__':

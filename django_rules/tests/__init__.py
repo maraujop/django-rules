@@ -5,3 +5,4 @@ from core import (
     UtilsTest,
 )
 from decorators import DecoratorsTest
+from templatetags import TemplatetagsTest
