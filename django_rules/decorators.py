@@ -30,7 +30,7 @@ def object_permission_required(ModelType, codename, **kwargs):
     Examples::
 
         # register(codename='can_ship',...,view_param_pk='paramView')
-        @permission_required(Dummy.can_ship, return_403=True)
+        @permission_required(Dummy, 'can_ship, return_403=True)
         def my_view(request, paramView):
             return HttpResponse('Hello')
     """

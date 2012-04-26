@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-
-
 import os
 import sys
 
@@ -18,7 +16,7 @@ version = '0.2'
 setup(
     name='django-rules',
     version=version,
-    description='Flexible per-object authorization backend for Django',
+    description="Flexible per-object authorization backend for Django",
     long_description=read('README.rst'),
     classifiers=[
         'Programming Language :: Python',

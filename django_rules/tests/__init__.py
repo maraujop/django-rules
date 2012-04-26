@@ -1,3 +1,7 @@
 # -*- coding: utf-8 -*-
-from core import *
-from decorators import *
+from core import (
+    BackendTest,
+    RulePermissionTest,
+    UtilsTest,
+)
+from decorators import DecoratorsTest
