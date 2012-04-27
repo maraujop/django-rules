@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-
-
 import inspect
 
 from django.conf import settings
@@ -14,6 +12,34 @@ from exceptions import (
 )
 
 
+class Memoize(object):
+    def __init__(self, f):
+        self.fun = f
+        self.memoization_cache = {}
+
+    def __get__(self, obj, type=None):
+        self.obj = obj
+        return self
+
+    def __call__(self, *args, **kwargs):
+        if len(args) == 3:
+            user, codename, obj = args
+        elif len(args) == 2:
+            # obj is None
+            user, codename = args
+            return self.fun(self.obj, *args)
+
+        key = '%s:%s:%s:%s' % (obj.__class__, obj.pk, getattr(user, 'pk', 'anonymous'), codename)
+
+        # Checked if the rule result is already cached
+        if key in self.memoization_cache:
+            return self.memoization_cache[key]
+
+        result = self.fun(self.obj, *args)
+        self.memoization_cache[key] = result
+        return result
+
+
 class ObjectPermissionBackend(object):
     supports_object_permissions = True
     supports_anonymous_user = True
@@ -22,6 +48,7 @@ class ObjectPermissionBackend(object):
     def authenticate(self, username, password):  # pragma: no cover
         return None
 
+    @Memoize
     def has_perm(self, user_obj, perm, obj=None):
         """
         This method checks if the user_obj has perm on obj. Returns True or False
