@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-
 import os
 import sys
 
@@ -14,13 +12,13 @@ sys.path.insert(0, parent)
 from django.test.simple import DjangoTestSuiteRunner
 
 
-
 def runtests():
     DjangoTestSuiteRunner(failfast=False).run_tests([
         'django_rules.BackendTest',
         'django_rules.RulePermissionTest',
         'django_rules.UtilsTest',
-        'django_rules.DecoratorsTest'
+        'django_rules.DecoratorsTest',
+        'django_rules.TemplatetagsTest',
     ], verbosity=1, interactive=True)
 
 if __name__ == '__main__':

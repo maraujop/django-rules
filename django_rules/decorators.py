@@ -30,7 +30,7 @@ def object_permission_required(ModelType, codename, **kwargs):
     Examples::
 
         # register(codename='can_ship',...,view_param_pk='paramView')
-        @permission_required(Dummy.can_ship, return_403=True)
+        @permission_required(Dummy, 'can_ship, return_403=True)
         def my_view(request, paramView):
             return HttpResponse('Hello')
     """
@@ -56,7 +56,7 @@ def object_permission_required(ModelType, codename, **kwargs):
             # parameters as kwargs
             if rule.view_param_pk not in kwargs:
                 raise RulesError("The view does not have a parameter called %s in kwargs" % rule.view_param_pk)
-                
+
             obj = get_object_or_404(ModelType, pk=kwargs[rule.view_param_pk])
 
             if not request.user.has_perm(codename, obj):

@@ -7,7 +7,6 @@ from django.utils.importlib import import_module
 from django_rules import mem_store
 from exceptions import (
     NotBooleanPermission,
-    NonexistentFieldName,
     RulesError,
 )
 
@@ -59,7 +58,7 @@ class ObjectPermissionBackend(object):
         if obj is None:
             return False
 
-        # Centralized authorizations: You need to define a module in settings.CENTRAL_AUTHORIZATIONS that has a 
+        # Centralized authorizations: You need to define a module in settings.CENTRAL_AUTHORIZATIONS that has a
         # central_authorizations function inside
         if hasattr(settings, 'CENTRAL_AUTHORIZATIONS'):
             module = getattr(settings, 'CENTRAL_AUTHORIZATIONS')
@@ -82,7 +81,7 @@ class ObjectPermissionBackend(object):
                     return is_authorized
 
             except TypeError:
-                raise RulesError('central_authorizations should receive 2 parameters: (user_obj, perm)')
+                raise RulesError("central_authorizations should receive 2 parameters: (user_obj, perm)")
 
         # We get the rule for that perm
         # If the rule doesn't exist, return False for Django authorization cascading
