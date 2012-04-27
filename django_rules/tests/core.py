@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-from cStringIO import StringIO
 
 from django.test import TestCase
 from django.contrib.auth.models import User, AnonymousUser
-from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from django_rules.exceptions import (
     NonexistentFieldName,
@@ -29,10 +27,8 @@ class BackendTest(TestCase):
         self.obj = Dummy.objects.get_or_create(supplier=self.user, name='dummy')[0]
         
         # Rule
-        sys.stderr = open(os.devnull, 'w')  # silencing the "overwriting" warning
         register(codename='can_ship', field_name='canShip', ModelType=Dummy, view_param_pk='idDummy',
                                             description="Only supplier have the authorization to ship")
-        sys.stderr = sys.__stderr__
 
     def test_regularuser_has_perm(self):
         self.assertTrue(self.user.has_perm('can_ship', self.obj))
@@ -122,7 +118,6 @@ class RulePermissionTest(TestCase):
     def setUp(self):
         self.user = User.objects.get_or_create(username='javier', is_active=True)[0]
         self.obj = Dummy.objects.get_or_create(supplier=self.user)[0]
-        self.ctype = ContentType.objects.get_for_model(self.obj)
 
     def test_invalid_field_name(self):
         self.assertRaises(NonexistentFieldName, lambda:register(codename='can_ship', field_name='invalidField', ModelType=Dummy, 
@@ -167,11 +162,3 @@ class UtilsTest(TestCase):
             register(codename='canShip', ModelType=Dummy)
         except:
             self.fail("test_register_valid_rules_compact_style failed")
-
-    def test_override_already_registered_rule(self):
-        register(codename='canShip', ModelType=Dummy)
-        sys.stderr = stderr = StringIO()  # let's capture the warning
-        register(codename='canShip', ModelType=Dummy)
-        sys.stderr = sys.__stderr__
-
-        self.assertTrue((True if "being overwritten" in stderr.getvalue() else False))

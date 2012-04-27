@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import logging
+LOGGER = logging.getLogger('django_rules')
 from collections import defaultdict
 import inspect
 import sys
@@ -62,7 +64,7 @@ def register(codename, ModelType, field_name=None, view_param_pk=None, descripti
 
     # We see if the rule's codename exists, if it does warn overwriting
     if codename in _mem_store[ModelType].keys():
-        sys.stderr.write("Careful rule %s being overwritten, make sure it has not been registered twice\n" % codename)
+        LOGGER.warning("Careful rule %s being overwritten, make sure it has not been registered twice\n" % codename)
 
     _mem_store[ModelType].update({
         codename: RulePermission(

@@ -9,3 +9,4 @@
 /django_rules.egg-info
 coverage.data
 *,cover
+django_rules.log
