@@ -35,7 +35,7 @@ def has_perm(parser, token):
         {% has_perm OBJ.CODENAME %}
 
      Then, you can do:
-        {% if CODENAME %}
+        {% if OBJ_CODENAME %}
             (...)
         {% endif %}
 
