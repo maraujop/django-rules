@@ -42,7 +42,7 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'django.utils.log.NullHandler',
         },
-        'logfile' : {
+        'logfile': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filename': 'django_rules.log',
