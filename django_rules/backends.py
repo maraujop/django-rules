@@ -21,16 +21,14 @@ class Memoize(object):
         return self
 
     def __call__(self, *args, **kwargs):
-        if len(args) == 3:
-            user, codename, obj = args
-        elif len(args) == 2:
+        if len(args) == 2:
             # obj is None
             user, codename = args
             return self.fun(self.obj, *args)
 
+        user, codename, obj = args
         key = '%s:%s:%s:%s' % (obj.__class__, obj.pk, getattr(user, 'pk', 'anonymous'), codename)
 
-        # Checked if the rule result is already cached
         if key in self.memoization_cache:
             return self.memoization_cache[key]
 
