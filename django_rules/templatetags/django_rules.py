@@ -19,6 +19,19 @@ class PermsNode(template.Node):
         return ''
 
 
+def _compile_patterns():
+    for tag_name, pat in _tag_patterns.iteritems():
+        pat = r'^' + tag_name + ' ' + pat
+        pat = pat.replace(' ', '(\s)+')
+        _patterns[tag_name] = re.compile(pat)
+
+_tag_patterns = {
+    'has_perm': r'(?P<user>\w+)? (?P<obj>\w+).(?P<codename>\w+)( as (?P<varname>\w+))?$',
+}
+_patterns = {}
+_compile_patterns()
+
+
 @register.tag
 def has_perm(parser, token):
     """
@@ -48,15 +61,7 @@ def has_perm(parser, token):
         {% endif %}
     """
     try:
-        SPACES_PATTERN = '(\s)+'
-        pat = r'^has_perm ' + \
-              r'(?P<user>\w+)? (?P<obj>\w+).(?P<codename>\w+)' + \
-              r'(' + \
-                r' as ' + \
-                  r'(?P<varname>\w+)' + \
-              r')?$'
-        pat = pat.replace(' ', SPACES_PATTERN)
-        bits = re.search(pat, token.contents).groupdict()
+        bits = _patterns['has_perm'].search(token.contents).groupdict()
     except AttributeError:
         raise template.TemplateSyntaxError("Incorrect 'has_perm' template tag syntax")
 
