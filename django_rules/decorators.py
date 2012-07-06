@@ -13,6 +13,61 @@ from exceptions import RulesError
 from exceptions import NonexistentPermission
 from models import RulePermission
 from backends import ObjectPermissionBackend
+from utils import register
+
+registered_lazy_list=dict()
+
+class register_lazy(object):
+    """
+    Decorator for model that register lazly a particular permission
+
+    This decorator a wrapper to original utils.register and permit the use of
+    decorator for define new rules.
+    If you define all rules using this decorator you don't need anymore rules.py
+    file.
+    Furthermore you can use your actual rules.py and decoration toghether 
+    whitout any problem.
+    This decorator take the same six argument  of rules.py (described at 
+    https://github.com/maraujop/django-rules#rules) in this order (the same of 
+    rules.py):
+    :param app_name: 
+    :param codename: 
+    :param model: 
+    :param field_name (optional): 
+    :param view_param_pk (optional): 
+    :param description (optional): 
+    
+    
+    Examples::
+
+        @permission_required('shipping', 'can_ship', 'Item')
+        def can_ship(self, user_obj):
+            '''
+            Checks if the given user_obj is the supplier of the item
+            '''
+            return self.supplier == user_obj
+        
+        or, for set view_param_pk
+        
+        @permission_required('shipping', 'can_ship', 'Item','','pk')
+        def can_ship(self, user_obj):
+            '''
+            Checks if the given user_obj is the supplier of the item
+            '''
+            return self.supplier == user_obj
+
+    """
+    def __init__(self, app_name, codename, model, field_name='', view_param_pk='', description=''):
+        registered_lazy_list[codename]=((app_name, model, field_name, view_param_pk, description,))
+        try:
+            RulePermission.objects.get(codename = codename).delete()
+        except:
+            pass
+
+    def __call__(self, f):
+        def wrapped_f(model, user):
+            return f(model, user)
+        return wrapped_f
 
 
 def object_permission_required(perm, **kwargs):
@@ -52,11 +107,17 @@ def object_permission_required(perm, **kwargs):
     def decorator(view_func):
         def _wrapped_view(request, *args, **kwargs):
             obj = None
-            
             try:
                 rule = RulePermission.objects.get(codename = perm)
             except RulePermission.DoesNotExist:
-                raise NonexistentPermission("Permission %s does not exist" % perm)
+                # If rule is lazly registered then we register just now
+                if perm in registered_lazy_list:
+                    data = registered_lazy_list.pop(perm)
+                    register(data[0], perm, data[1], data[2], data[3], data[4])
+                    rule = RulePermission.objects.get(codename = perm)
+                else:
+                    raise NonexistentPermission("Permission %s does not exist" % perm)
+
 
             # Only look in kwargs, if the views are entry points through urls Django passes parameters as kwargs
             # We could look in args using  inspect.getcallargs in Python 2.7 or a custom function that 
@@ -67,7 +128,6 @@ def object_permission_required(perm, **kwargs):
                 
             model_class = rule.content_type.model_class()
             obj = get_object_or_404(model_class, pk=kwargs[rule.view_param_pk])
-
             if not request.user.has_perm(perm, obj):
                 if return_403:
                     return HttpResponseForbidden()
