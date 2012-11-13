@@ -267,7 +267,7 @@ def ship_item(request, id):
 We could easily decorate the view to make the method much more compact and easy to read:
 
 <pre>
-from django_rules import object_permission_required
+from django_rules.decorators import object_permission_required
 
 @object_permission_required('can_ship')
 def ship_item(request, id):
