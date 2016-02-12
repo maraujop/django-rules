@@ -8,6 +8,7 @@ from django.http import HttpResponseRedirect
 from django.utils.functional import wraps
 from django.shortcuts import get_object_or_404
 from django.core.urlresolvers import NoReverseMatch, reverse
+from django.core.exceptions import PermissionDenied
 
 from exceptions import RulesError
 from exceptions import NonexistentPermission
@@ -52,25 +53,25 @@ def object_permission_required(perm, **kwargs):
     def decorator(view_func):
         def _wrapped_view(request, *args, **kwargs):
             obj = None
-            
+
             try:
-                rule = RulePermission.objects.get(codename = perm)
+                rule = RulePermission.objects.get(codename=perm)
             except RulePermission.DoesNotExist:
                 raise NonexistentPermission("Permission %s does not exist" % perm)
 
             # Only look in kwargs, if the views are entry points through urls Django passes parameters as kwargs
-            # We could look in args using  inspect.getcallargs in Python 2.7 or a custom function that 
-            # imitates it, but if the view is internal, I think it's better to force the user to pass 
+            # We could look in args using  inspect.getcallargs in Python 2.7 or a custom function that
+            # imitates it, but if the view is internal, I think it's better to force the user to pass
             # parameters as kwargs
-            if rule.view_param_pk not in kwargs: 
+            if rule.view_param_pk not in kwargs:
                 raise RulesError("The view does not have a parameter called %s in kwargs" % rule.view_param_pk)
-                
+
             model_class = rule.content_type.model_class()
             obj = get_object_or_404(model_class, pk=kwargs[rule.view_param_pk])
 
             if not request.user.has_perm(perm, obj):
                 if return_403:
-                    return HttpResponseForbidden()
+                    raise PermissionDenied
                 else:
                     if redirect_url:
                         try:
