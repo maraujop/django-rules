@@ -4,7 +4,12 @@ import imp
 from optparse import make_option
 
 from django.conf import settings
-from django.utils.importlib import import_module
+
+try:
+    from importlib import import_module
+except ImportError:  # python = 2.6
+    from django.utils.importlib import import_module  # NOQA
+
 from django.core.management import call_command
 from django.core.management import BaseCommand
 from django.db import connections

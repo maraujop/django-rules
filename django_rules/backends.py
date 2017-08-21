@@ -4,7 +4,12 @@ import inspect
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User, AnonymousUser
-from django.utils.importlib import import_module
+
+try:
+    from importlib import import_module
+except ImportError:  # python = 2.6
+    from django.utils.importlib import import_module  # NOQA
+
 
 from models import RulePermission
 from exceptions import NotBooleanPermission
