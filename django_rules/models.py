@@ -10,7 +10,7 @@ from exceptions import RulesError
 
 class RulePermission(models.Model):
     class Meta:
-        app_label = 'django_rules.rule_permission'
+        app_label = 'django_rules'
 
     """
     This model holds the rules for the authorization system
