@@ -43,10 +43,18 @@ def import_app(app_label, verbosity):
 
 
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option("--fixture", action='store_true', dest="fixture", default=False,
-                   help="Generate a fixture of django_rules"),
-    )
+    if hasattr(BaseCommand, 'option_list'):
+        option_list = BaseCommand.option_list + (
+            make_option("--fixture", action='store_true', dest="fixture", default=False,
+                       help="Generate a fixture of django_rules"),
+        )
+    else:
+        def add_arguments(self, parser):
+            parser.add_argument(
+                '--fixture', action='store_true', dest='fixture',
+                help='Generate a fixture of django_rules', default=False
+            )
+
     help = 'Syncs into database all rules defined in rules.py files'
     args = '[appname ...]'
 
