@@ -40,7 +40,7 @@ class RulePermission(models.Model):
         # If field_name does not exist a ValidationError is raised
         if not hasattr(self.content_type.model_class(), self.field_name):
             # Search within attributes field names
-            if not (self.field_name in self.content_type.model_class()._meta.get_all_field_names()):
+            if not (self.field_name in self.content_type.model_class()._meta.get_fields()):
                 raise NonexistentFieldName("Could not create rule: field_name %s of rule %s does not exist in model %s" %
                                             (self.field_name, self.codename, self.content_type.model))
         else:
